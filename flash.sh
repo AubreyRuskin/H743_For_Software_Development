@@ -1,15 +1,16 @@
 #!/bin/bash
 
-# Flash script for STM32H743 using OpenOCD and ST-Link
+# Flash script for STM32H743 using pyOCD
+
 # Usage: ./flash.sh [build_type]
 # Default build_type is Debug
 
 BUILD_TYPE=${1:-Debug}
 ELF_FILE="build/${BUILD_TYPE}/H743_For_Software_Development.elf"
 
-# Check if OpenOCD is installed
-if ! command -v openocd &> /dev/null; then
-    echo "Error: OpenOCD is not installed. Please install it first."
+# Check if pyocd is installed
+if ! command -v pyocd &> /dev/null; then
+    echo "Error: pyocd is not installed. Please install it first."
     exit 1
 fi
 
@@ -19,10 +20,10 @@ if [ ! -f "$ELF_FILE" ]; then
     exit 1
 fi
 
-echo "Flashing $ELF_FILE to STM32H743 using OpenOCD..."
+echo "Flashing $ELF_FILE to STM32H743 using pyOCD..."
 
-# Run OpenOCD to flash the binary
-openocd -f interface/stlink.cfg -f target/stm32h7x.cfg -c "program $ELF_FILE verify reset exit"
+# Run pyOCD to flash the hex file
+pyocd flash "$ELF_FILE" -t stm32h743xx
 
 if [ $? -eq 0 ]; then
     echo "Flashing completed successfully!"
