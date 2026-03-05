@@ -42,8 +42,11 @@
 /* Time to block waiting for transmissions to finish */
 #define ETHIF_TX_TIMEOUT (2000U)
 /* USER CODE BEGIN OS_THREAD_STACK_SIZE_WITH_RTOS */
-/* Stack size of the interface thread */
-#define INTERFACE_THREAD_STACK_SIZE ( 350 )
+/* Stack size of the interface thread
+ * Must be large enough for: ethernetif_input -> low_level_input ->
+ * HAL_ETH_ReadData -> tcpip_input -> memp_malloc -> sys_arch_protect.
+ * 350 bytes is far too small and causes stack overflow -> memory corruption. */
+#define INTERFACE_THREAD_STACK_SIZE ( 1024 )
 /* USER CODE END OS_THREAD_STACK_SIZE_WITH_RTOS */
 /* Network interface name */
 #define IFNAME0 's'
@@ -178,7 +181,10 @@ void HAL_ETH_RxCpltCallback(ETH_HandleTypeDef *handlerEth)
   */
 void HAL_ETH_TxCpltCallback(ETH_HandleTypeDef *handlerEth)
 {
-  HAL_ETH_ReleaseTxPacket(handlerEth);
+  /* Do NOT call HAL_ETH_ReleaseTxPacket here!
+   * ReleaseTxPacket -> TxFreeCallback -> pbuf_free -> osMutexAcquire
+   * which is illegal in ISR context and causes deadlock.
+   * Release is deferred to low_level_output (task context). */
   osSemaphoreRelease(TxPktSemaphore);
 }
 /**
@@ -392,6 +398,11 @@ static err_t low_level_output(struct netif *netif, struct pbuf *p)
   ETH_BufferTypeDef Txbuffer[ETH_TX_DESC_CNT] = {0};
 
   memset(Txbuffer, 0 , ETH_TX_DESC_CNT*sizeof(ETH_BufferTypeDef));
+
+  /* Release any previously completed TX packets in task context.
+   * This was moved out of HAL_ETH_TxCpltCallback (ISR) to avoid
+   * calling pbuf_free from interrupt context which causes deadlock. */
+  HAL_ETH_ReleaseTxPacket(&heth);
 
   for(q = p; q != NULL; q = q->next)
   {

@@ -381,7 +381,13 @@ void sys_init(void)
 #if (osCMSIS < 0x20000U)
   lwip_sys_mutex = osMutexCreate(osMutex(lwip_sys_mutex));
 #else
-  lwip_sys_mutex = osMutexNew(NULL);
+  /* lwIP requires sys_arch_protect to support recursive calls from the same task.
+   * A non-recursive mutex will self-deadlock if the same task takes it twice. */
+  const osMutexAttr_t lwip_sys_mutex_attr = {
+    .name = "lwip_sys_mutex",
+    .attr_bits = osMutexRecursive | osMutexPrioInherit,
+  };
+  lwip_sys_mutex = osMutexNew(&lwip_sys_mutex_attr);
 #endif
 }
 /*-----------------------------------------------------------------------------------*/
@@ -396,7 +402,12 @@ err_t sys_mutex_new(sys_mutex_t *mutex) {
   osMutexDef(MUTEX);
   *mutex = osMutexCreate(osMutex(MUTEX));
 #else
-  *mutex = osMutexNew(NULL);
+  /* Use recursive + priority-inherit mutex for all lwIP mutexes
+   * (including lock_tcpip_core) to match lwIP expectations. */
+  const osMutexAttr_t lwip_mutex_attr = {
+    .attr_bits = osMutexRecursive | osMutexPrioInherit,
+  };
+  *mutex = osMutexNew(&lwip_mutex_attr);
 #endif
 
   if(*mutex == NULL)
