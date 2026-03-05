@@ -1,0 +1,36 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "STM32H743 Debug (pyOCD)",
+      "type": "cortex-debug",
+      "request": "launch",
+      "servertype": "pyocd",
+      "cwd": "${workspaceFolder}",
+      "executable": "${workspaceFolder}/build/Debug/H743_For_Software_Development.elf",
+      "gdbPath": "arm-none-eabi-gdb",
+      "targetId": "stm32h743xx",
+      "interface": "swd",
+      "runToEntryPoint": "main",
+      "preLaunchTask": "cmake: build Debug",
+      "showDevDebugOutput": "raw",
+      "serverArgs": [
+        "--frequency",
+        "4000000"
+      ]
+    },
+    {
+      "name": "STM32H743 Attach (external pyOCD :3333)",
+      "type": "cortex-debug",
+      "request": "launch",
+      "servertype": "external",
+      "cwd": "${workspaceFolder}",
+      "executable": "${workspaceFolder}/build/Debug/H743_For_Software_Development.elf",
+      "gdbPath": "arm-none-eabi-gdb",
+      "gdbTarget": "localhost:3333",
+      "runToEntryPoint": "main",
+      "preLaunchTask": "cmake: build Debug",
+      "showDevDebugOutput": "raw"
+    }
+  ]
+}
