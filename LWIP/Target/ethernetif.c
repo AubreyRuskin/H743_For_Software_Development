@@ -178,6 +178,7 @@ void HAL_ETH_RxCpltCallback(ETH_HandleTypeDef *handlerEth)
   */
 void HAL_ETH_TxCpltCallback(ETH_HandleTypeDef *handlerEth)
 {
+  HAL_ETH_ReleaseTxPacket(handlerEth);
   osSemaphoreRelease(TxPktSemaphore);
 }
 /**
@@ -190,6 +191,11 @@ void HAL_ETH_ErrorCallback(ETH_HandleTypeDef *handlerEth)
   if((HAL_ETH_GetDMAError(handlerEth) & ETH_DMACSR_RBU) == ETH_DMACSR_RBU)
   {
      osSemaphoreRelease(RxPktSemaphore);
+  }
+
+  if((HAL_ETH_GetDMAError(handlerEth) & ETH_DMACSR_TBU) == ETH_DMACSR_TBU)
+  {
+     osSemaphoreRelease(TxPktSemaphore);
   }
 }
 
@@ -414,6 +420,7 @@ static err_t low_level_output(struct netif *netif, struct pbuf *p)
 
   pbuf_ref(p);
 
+  uint32_t retryCount = 0U;
   do
   {
     if(HAL_ETH_Transmit_IT(&heth, &TxConfig) == HAL_OK)
@@ -428,7 +435,16 @@ static err_t low_level_output(struct netif *netif, struct pbuf *p)
         /* Wait for descriptors to become available */
         osSemaphoreAcquire(TxPktSemaphore, ETHIF_TX_TIMEOUT);
         HAL_ETH_ReleaseTxPacket(&heth);
-        errval = ERR_BUF;
+        retryCount++;
+        if(retryCount > 4U)
+        {
+          pbuf_free(p);
+          errval = ERR_IF;
+        }
+        else
+        {
+          errval = ERR_BUF;
+        }
       }
       else
       {
