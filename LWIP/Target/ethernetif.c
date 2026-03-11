@@ -181,10 +181,6 @@ void HAL_ETH_RxCpltCallback(ETH_HandleTypeDef *handlerEth)
   */
 void HAL_ETH_TxCpltCallback(ETH_HandleTypeDef *handlerEth)
 {
-  /* Do NOT call HAL_ETH_ReleaseTxPacket here!
-   * ReleaseTxPacket -> TxFreeCallback -> pbuf_free -> osMutexAcquire
-   * which is illegal in ISR context and causes deadlock.
-   * Release is deferred to low_level_output (task context). */
   osSemaphoreRelease(TxPktSemaphore);
 }
 /**
@@ -197,11 +193,6 @@ void HAL_ETH_ErrorCallback(ETH_HandleTypeDef *handlerEth)
   if((HAL_ETH_GetDMAError(handlerEth) & ETH_DMACSR_RBU) == ETH_DMACSR_RBU)
   {
      osSemaphoreRelease(RxPktSemaphore);
-  }
-
-  if((HAL_ETH_GetDMAError(handlerEth) & ETH_DMACSR_TBU) == ETH_DMACSR_TBU)
-  {
-     osSemaphoreRelease(TxPktSemaphore);
   }
 }
 
@@ -399,11 +390,6 @@ static err_t low_level_output(struct netif *netif, struct pbuf *p)
 
   memset(Txbuffer, 0 , ETH_TX_DESC_CNT*sizeof(ETH_BufferTypeDef));
 
-  /* Release any previously completed TX packets in task context.
-   * This was moved out of HAL_ETH_TxCpltCallback (ISR) to avoid
-   * calling pbuf_free from interrupt context which causes deadlock. */
-  HAL_ETH_ReleaseTxPacket(&heth);
-
   for(q = p; q != NULL; q = q->next)
   {
     if(i >= ETH_TX_DESC_CNT)
@@ -431,7 +417,6 @@ static err_t low_level_output(struct netif *netif, struct pbuf *p)
 
   pbuf_ref(p);
 
-  uint32_t retryCount = 0U;
   do
   {
     if(HAL_ETH_Transmit_IT(&heth, &TxConfig) == HAL_OK)
@@ -446,16 +431,7 @@ static err_t low_level_output(struct netif *netif, struct pbuf *p)
         /* Wait for descriptors to become available */
         osSemaphoreAcquire(TxPktSemaphore, ETHIF_TX_TIMEOUT);
         HAL_ETH_ReleaseTxPacket(&heth);
-        retryCount++;
-        if(retryCount > 4U)
-        {
-          pbuf_free(p);
-          errval = ERR_IF;
-        }
-        else
-        {
-          errval = ERR_BUF;
-        }
+        errval = ERR_BUF;
       }
       else
       {
