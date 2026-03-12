@@ -3,3 +3,5 @@ cmake
 .cache
 Docs
 root
+Image/root
+Image/bin
