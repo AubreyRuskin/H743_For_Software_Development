@@ -159,14 +159,6 @@ int lfs_port_init(void)
     }
 
     int err = lfs_mount(&g_lfs, &g_lfs_cfg);
-    if (err == LFS_ERR_CORRUPT || err == LFS_ERR_NOENT) {
-        err = lfs_format(&g_lfs, &g_lfs_cfg);
-        if (err != 0) {
-            return err;
-        }
-
-        err = lfs_mount(&g_lfs, &g_lfs_cfg);
-    }
 
     if (err == 0) {
         g_lfs_mounted = true;

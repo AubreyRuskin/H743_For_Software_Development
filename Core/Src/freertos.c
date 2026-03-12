@@ -26,6 +26,9 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "w25q64.h"
+#include "lfs_port.h"
+#include "lfs.h"
+#include <string.h>
 
 /* USER CODE END Includes */
 
@@ -36,8 +39,6 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define W25Q_TEST_ADDR          0x001000U
-#define W25Q_TEST_LEN           32U
 
 /* USER CODE END PD */
 
@@ -48,7 +49,6 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
-volatile uint32_t g_w25q_jedec_id = 0U;
 
 /* USER CODE END Variables */
 /* Definitions for defaultTask */
@@ -121,18 +121,67 @@ void StartDefaultTask(void *argument)
   /* init code for LWIP */
   MX_LWIP_Init();
   /* USER CODE BEGIN StartDefaultTask */
-  if (W25Q64_ReadJedecId((uint32_t *)&g_w25q_jedec_id) == W25Q64_OK)
-  {
-    if ((g_w25q_jedec_id == W25Q64_JEDEC_ID) &&
-        (W25Q64_QuadRWTest(W25Q_TEST_ADDR, W25Q_TEST_LEN) == W25Q64_OK))
+  int ok = 0;
+
+  /* --- Step 1: raw read block 0, check littlefs superblock magic --- */
+  do {
+    uint8_t hdr[64];
+    uint32_t jedec_id = 0;
+    if (W25Q64_ReadJedecId(&jedec_id) != W25Q64_OK || jedec_id != W25Q64_JEDEC_ID)
+      break;
+    if (W25Q64_EnableQuadMode() != W25Q64_OK)
+      break;
+    /* littlefs metadata tag for superblock contains "littlefs" string.
+     * Scan the first 64 bytes for the magic. */
+    if (W25Q64_Read(0, hdr, sizeof(hdr)) != W25Q64_OK)
+      break;
     {
-      HAL_GPIO_TogglePin(GPIOH, GPIO_PIN_7);
+      int found = 0;
+      for (size_t i = 0; i <= sizeof(hdr) - 8; i++) {
+        if (memcmp(&hdr[i], "littlefs", 8) == 0) { found = 1; break; }
+      }
+      if (!found)
+        break;
     }
+
+    /* --- Step 2: mount via lfs_port (will NOT format if mount fails) --- */
+    int mount_err = lfs_port_init();
+    if (mount_err != 0)
+      break;
+
+    lfs_t *lfs = lfs_port_fs();
+    if (lfs == NULL)
+      break;
+
+    /* --- Step 3: read /a.txt and verify content --- */
+    lfs_file_t f;
+    if (lfs_file_open(lfs, &f, "/a.txt", LFS_O_RDONLY) < 0)
+      break;
+
+    char buf[16];
+    lfs_ssize_t n = lfs_file_read(lfs, &f, buf, sizeof(buf) - 1);
+    lfs_file_close(lfs, &f);
+    if (n < 4)
+      break;
+    buf[n] = '\0';
+
+    if (strncmp(buf, "aaaa", 4) != 0)
+      break;
+
+    ok = 1;
+  } while (0);
+
+  if (!ok) {
+    /* Verification failed: toggle LED once and stop */
+    HAL_GPIO_TogglePin(GPIOH, GPIO_PIN_7);
   }
 
   /* Infinite loop */
   for(;;)
   {
+    if (ok) {
+      HAL_GPIO_TogglePin(GPIOH, GPIO_PIN_7);
+    }
     osDelay(500);
   }
   /* USER CODE END StartDefaultTask */
