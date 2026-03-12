@@ -25,6 +25,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "lfs_port.h"
 
 /* USER CODE END Includes */
 
@@ -117,6 +118,8 @@ void StartDefaultTask(void *argument)
   /* init code for LWIP */
   MX_LWIP_Init();
   /* USER CODE BEGIN StartDefaultTask */
+  (void)lfs_port_init();
+
   /* Infinite loop */
   for(;;)
   {
