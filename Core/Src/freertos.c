@@ -25,7 +25,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "lfs_port.h"
+#include "w25q64.h"
 
 /* USER CODE END Includes */
 
@@ -36,6 +36,8 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define W25Q_TEST_ADDR          0x001000U
+#define W25Q_TEST_LEN           32U
 
 /* USER CODE END PD */
 
@@ -46,6 +48,7 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
+volatile uint32_t g_w25q_jedec_id = 0U;
 
 /* USER CODE END Variables */
 /* Definitions for defaultTask */
@@ -118,12 +121,18 @@ void StartDefaultTask(void *argument)
   /* init code for LWIP */
   MX_LWIP_Init();
   /* USER CODE BEGIN StartDefaultTask */
-  (void)lfs_port_init();
+  if (W25Q64_ReadJedecId((uint32_t *)&g_w25q_jedec_id) == W25Q64_OK)
+  {
+    if ((g_w25q_jedec_id == W25Q64_JEDEC_ID) &&
+        (W25Q64_QuadRWTest(W25Q_TEST_ADDR, W25Q_TEST_LEN) == W25Q64_OK))
+    {
+      HAL_GPIO_TogglePin(GPIOH, GPIO_PIN_7);
+    }
+  }
 
   /* Infinite loop */
   for(;;)
   {
-    HAL_GPIO_TogglePin(GPIOH, GPIO_PIN_7);
     osDelay(500);
   }
   /* USER CODE END StartDefaultTask */
