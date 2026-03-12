@@ -8,6 +8,9 @@ extern "C" {
 #include <stdint.h>
 
 #define W25Q64_JEDEC_ID (0xEF4017UL)
+#define W25Q64_TOTAL_SIZE (8UL * 1024UL * 1024UL)
+#define W25Q64_SECTOR_SIZE (4UL * 1024UL)
+#define W25Q64_PAGE_SIZE (256UL)
 
 typedef enum {
     W25Q64_OK = 0,
@@ -36,6 +39,10 @@ typedef enum {
 } w25q64_status_t;
 
 int W25Q64_ReadJedecId(uint32_t *jedec_id);
+int W25Q64_EnableQuadMode(void);
+int W25Q64_Read(uint32_t addr, void *data, uint32_t len);
+int W25Q64_Program(uint32_t addr, const void *data, uint32_t len);
+int W25Q64_EraseSector4K(uint32_t addr);
 int W25Q64_QuadRWTest(uint32_t test_addr, uint32_t test_len);
 
 #ifdef __cplusplus

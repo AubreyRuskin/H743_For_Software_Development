@@ -1,21 +1,18 @@
 #include "lfs_port.h"
 
 #include <stdbool.h>
-#include <string.h>
 
 #include "cmsis_os2.h"
-#include "main.h"
-#include "stm32h7xx_hal_flash.h"
-#include "stm32h7xx_hal_flash_ex.h"
+#include "w25q64.h"
 
-#define LFS_FLASH_BASE_ADDR      (0x08100000UL)
-#define LFS_FLASH_BLOCK_SIZE     (128UL * 1024UL)
-#define LFS_FLASH_BLOCK_COUNT    (8UL)
-#define LFS_FLASH_PROG_SIZE      (FLASH_NB_32BITWORD_IN_FLASHWORD * sizeof(uint32_t))
-#define LFS_FLASH_READ_SIZE      (LFS_FLASH_PROG_SIZE)
+#define LFS_FLASH_BASE_ADDR      (0UL)
+#define LFS_FLASH_BLOCK_SIZE     (W25Q64_SECTOR_SIZE)
+#define LFS_FLASH_BLOCK_COUNT    (W25Q64_TOTAL_SIZE / W25Q64_SECTOR_SIZE)
+#define LFS_FLASH_PROG_SIZE      (W25Q64_PAGE_SIZE)
+#define LFS_FLASH_READ_SIZE      (16UL)
 
 #define LFS_CACHE_SIZE           (256U)
-#define LFS_LOOKAHEAD_SIZE       (16U)
+#define LFS_LOOKAHEAD_SIZE       (256U)
 #define LFS_BLOCK_CYCLES         (500)
 
 static lfs_t g_lfs;
@@ -62,8 +59,9 @@ static int lfs_port_read(const struct lfs_config *c, lfs_block_t block,
         return LFS_ERR_INVAL;
     }
 
-    memcpy(buffer, (const void *)lfs_flash_address(block, off), size);
-    return 0;
+    return (W25Q64_Read(lfs_flash_address(block, off), buffer, size) == W25Q64_OK)
+        ? 0
+        : LFS_ERR_IO;
 }
 
 static int lfs_port_prog(const struct lfs_config *c, lfs_block_t block,
@@ -79,29 +77,9 @@ static int lfs_port_prog(const struct lfs_config *c, lfs_block_t block,
         return LFS_ERR_INVAL;
     }
 
-    HAL_FLASH_Unlock();
-
-    uint32_t addr = lfs_flash_address(block, off);
-    const uint8_t *src = (const uint8_t *)buffer;
-    uint32_t flash_word[LFS_FLASH_PROG_SIZE / sizeof(uint32_t)];
-
-    for (lfs_size_t i = 0; i < size; i += LFS_FLASH_PROG_SIZE) {
-        memcpy(flash_word, src + i, LFS_FLASH_PROG_SIZE);
-
-        if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_FLASHWORD, addr + i,
-                              (uint32_t)(uintptr_t)flash_word) != HAL_OK) {
-            HAL_FLASH_Lock();
-            return LFS_ERR_IO;
-        }
-    }
-
-    HAL_FLASH_Lock();
-
-#if (__DCACHE_PRESENT == 1U)
-    SCB_CleanInvalidateDCache();
-#endif
-
-    return 0;
+    return (W25Q64_Program(lfs_flash_address(block, off), buffer, size) == W25Q64_OK)
+        ? 0
+        : LFS_ERR_IO;
 }
 
 static int lfs_port_erase(const struct lfs_config *c, lfs_block_t block)
@@ -112,29 +90,9 @@ static int lfs_port_erase(const struct lfs_config *c, lfs_block_t block)
         return LFS_ERR_INVAL;
     }
 
-    HAL_FLASH_Unlock();
-
-    FLASH_EraseInitTypeDef erase = {0};
-    erase.TypeErase = FLASH_TYPEERASE_SECTORS;
-    erase.Banks = FLASH_BANK_2;
-    erase.Sector = block;
-    erase.NbSectors = 1;
-    erase.VoltageRange = FLASH_VOLTAGE_RANGE_3;
-
-    uint32_t sector_error = 0U;
-    HAL_StatusTypeDef status = HAL_FLASHEx_Erase(&erase, &sector_error);
-
-    HAL_FLASH_Lock();
-
-    if (status != HAL_OK) {
-        return LFS_ERR_IO;
-    }
-
-#if (__DCACHE_PRESENT == 1U)
-    SCB_CleanInvalidateDCache();
-#endif
-
-    return 0;
+    return (W25Q64_EraseSector4K(lfs_flash_address(block, 0U)) == W25Q64_OK)
+        ? 0
+        : LFS_ERR_IO;
 }
 
 static int lfs_port_sync(const struct lfs_config *c)
@@ -167,7 +125,7 @@ static struct lfs_config g_lfs_cfg = {
     .name_max = 0,
     .file_max = 0,
     .attr_max = 0,
-    .metadata_max = 4096,
+    .metadata_max = 0,
     .inline_max = 0,
 };
 
@@ -189,6 +147,15 @@ int lfs_port_init(void)
         if (g_lfs_mutex == NULL) {
             return LFS_ERR_NOMEM;
         }
+    }
+
+    uint32_t jedec_id = 0U;
+    if (W25Q64_ReadJedecId(&jedec_id) != W25Q64_OK || jedec_id != W25Q64_JEDEC_ID) {
+        return LFS_ERR_IO;
+    }
+
+    if (W25Q64_EnableQuadMode() != W25Q64_OK) {
+        return LFS_ERR_IO;
     }
 
     int err = lfs_mount(&g_lfs, &g_lfs_cfg);

@@ -140,6 +140,11 @@ static int w25q_enable_quad_mode(void)
     return ((sr2 & W25Q_SR2_QE) != 0U) ? W25Q64_OK : W25Q64_ERR_QE_VERIFY;
 }
 
+int W25Q64_EnableQuadMode(void)
+{
+    return w25q_enable_quad_mode();
+}
+
 int W25Q64_ReadJedecId(uint32_t *jedec_id)
 {
     QSPI_CommandTypeDef cmd = {0};
@@ -165,6 +170,122 @@ int W25Q64_ReadJedecId(uint32_t *jedec_id)
     }
 
     *jedec_id = ((uint32_t)id[0] << 16) | ((uint32_t)id[1] << 8) | (uint32_t)id[2];
+    return W25Q64_OK;
+}
+
+int W25Q64_Read(uint32_t addr, void *data, uint32_t len)
+{
+    QSPI_CommandTypeDef cmd = {0};
+
+    if ((data == NULL) || (len == 0U) || ((addr + len) > W25Q64_TOTAL_SIZE)) {
+        return W25Q64_ERR_QREAD_CMD;
+    }
+
+    cmd.InstructionMode = QSPI_INSTRUCTION_1_LINE;
+    cmd.Instruction = W25Q_CMD_QUAD_READ;
+    cmd.AddressMode = QSPI_ADDRESS_1_LINE;
+    cmd.AddressSize = QSPI_ADDRESS_24_BITS;
+    cmd.Address = addr;
+    cmd.AlternateByteMode = QSPI_ALTERNATE_BYTES_NONE;
+    cmd.DataMode = QSPI_DATA_4_LINES;
+    cmd.NbData = len;
+    cmd.DummyCycles = 8;
+    cmd.DdrMode = QSPI_DDR_MODE_DISABLE;
+    cmd.DdrHoldHalfCycle = QSPI_DDR_HHC_ANALOG_DELAY;
+    cmd.SIOOMode = QSPI_SIOO_INST_EVERY_CMD;
+
+    if (HAL_QSPI_Command(&hqspi, &cmd, HAL_MAX_DELAY) != HAL_OK) {
+        return W25Q64_ERR_QREAD_CMD;
+    }
+
+    return (HAL_QSPI_Receive(&hqspi, (uint8_t *)data, HAL_MAX_DELAY) == HAL_OK)
+        ? W25Q64_OK
+        : W25Q64_ERR_QREAD_RX;
+}
+
+int W25Q64_EraseSector4K(uint32_t addr)
+{
+    QSPI_CommandTypeDef cmd = {0};
+
+    if ((addr >= W25Q64_TOTAL_SIZE) || ((addr % W25Q64_SECTOR_SIZE) != 0U)) {
+        return W25Q64_ERR_ERASE_CMD;
+    }
+
+    if (w25q_write_enable() != W25Q64_OK) {
+        return W25Q64_ERR_ERASE_WREN;
+    }
+
+    cmd.InstructionMode = QSPI_INSTRUCTION_1_LINE;
+    cmd.Instruction = W25Q_CMD_SECTOR_ERASE;
+    cmd.AddressMode = QSPI_ADDRESS_1_LINE;
+    cmd.AddressSize = QSPI_ADDRESS_24_BITS;
+    cmd.Address = addr;
+    cmd.AlternateByteMode = QSPI_ALTERNATE_BYTES_NONE;
+    cmd.DataMode = QSPI_DATA_NONE;
+    cmd.DummyCycles = 0;
+    cmd.DdrMode = QSPI_DDR_MODE_DISABLE;
+    cmd.DdrHoldHalfCycle = QSPI_DDR_HHC_ANALOG_DELAY;
+    cmd.SIOOMode = QSPI_SIOO_INST_EVERY_CMD;
+
+    if (HAL_QSPI_Command(&hqspi, &cmd, HAL_MAX_DELAY) != HAL_OK) {
+        return W25Q64_ERR_ERASE_CMD;
+    }
+
+    return (w25q_wait_busy_clear(3000U) == W25Q64_OK)
+        ? W25Q64_OK
+        : W25Q64_ERR_ERASE_BUSY;
+}
+
+int W25Q64_Program(uint32_t addr, const void *data, uint32_t len)
+{
+    QSPI_CommandTypeDef cmd = {0};
+    const uint8_t *src = (const uint8_t *)data;
+
+    if ((data == NULL) || (len == 0U) || ((addr + len) > W25Q64_TOTAL_SIZE)) {
+        return W25Q64_ERR_QPP_CMD;
+    }
+
+    while (len > 0U) {
+        uint32_t page_off = addr % W25Q64_PAGE_SIZE;
+        uint32_t chunk = W25Q64_PAGE_SIZE - page_off;
+        if (chunk > len) {
+            chunk = len;
+        }
+
+        if (w25q_write_enable() != W25Q64_OK) {
+            return W25Q64_ERR_QPP_WREN;
+        }
+
+        cmd.InstructionMode = QSPI_INSTRUCTION_1_LINE;
+        cmd.Instruction = W25Q_CMD_QUAD_PP;
+        cmd.AddressMode = QSPI_ADDRESS_1_LINE;
+        cmd.AddressSize = QSPI_ADDRESS_24_BITS;
+        cmd.Address = addr;
+        cmd.AlternateByteMode = QSPI_ALTERNATE_BYTES_NONE;
+        cmd.DataMode = QSPI_DATA_4_LINES;
+        cmd.NbData = chunk;
+        cmd.DummyCycles = 0;
+        cmd.DdrMode = QSPI_DDR_MODE_DISABLE;
+        cmd.DdrHoldHalfCycle = QSPI_DDR_HHC_ANALOG_DELAY;
+        cmd.SIOOMode = QSPI_SIOO_INST_EVERY_CMD;
+
+        if (HAL_QSPI_Command(&hqspi, &cmd, HAL_MAX_DELAY) != HAL_OK) {
+            return W25Q64_ERR_QPP_CMD;
+        }
+
+        if (HAL_QSPI_Transmit(&hqspi, (uint8_t *)src, HAL_MAX_DELAY) != HAL_OK) {
+            return W25Q64_ERR_QPP_TX;
+        }
+
+        if (w25q_wait_busy_clear(1000U) != W25Q64_OK) {
+            return W25Q64_ERR_QPP_BUSY;
+        }
+
+        addr += chunk;
+        src += chunk;
+        len -= chunk;
+    }
+
     return W25Q64_OK;
 }
 
