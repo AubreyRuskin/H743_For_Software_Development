@@ -1,0 +1,46 @@
+#ifndef __PSL_LIB__
+#define __PSL_LIB__
+
+#include	"relay.h"
+
+#ifdef	__cplusplus
+extern "C" {
+#endif
+
+EP_STATUS PSL_CALC(EP_ELEMENT *pelm);
+
+EP_STATUS PSL_PTDX(EP_ELEMENT *pelm);
+
+EP_STATUS PSL_IOC(EP_ELEMENT *pelm);
+
+EP_STATUS PSL_TOC(EP_ELEMENT *pelm);
+
+EP_STATUS PSL_NOCURRENT(EP_ELEMENT *pelm);
+
+EP_STATUS PSL_OVERLOAD(EP_ELEMENT *pelm);
+
+EP_STATUS PSL_NOC(EP_ELEMENT *pelm);
+
+EP_STATUS PSL_MXWY(EP_ELEMENT *pelm);
+
+EP_STATUS PSL_MXYY(EP_ELEMENT *pelm);
+
+EP_STATUS PSL_XLWY(EP_ELEMENT *pelm);
+
+EP_STATUS PSL_XLYY(EP_ELEMENT *pelm);
+
+EP_STATUS PSL_TQ(EP_ELEMENT *pelm);
+
+EP_STATUS PSL_IJS(EP_ELEMENT *pelm);
+
+EP_STATUS PSL_I0JS(EP_ELEMENT *pelm);
+
+EP_STATUS PSL_IINV(EP_ELEMENT *pelm);
+
+EP_STATUS PSL_I0INV(EP_ELEMENT *pelm);
+
+#ifdef	__cplusplus
+}
+#endif
+
+#endif
