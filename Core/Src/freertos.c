@@ -190,5 +190,14 @@ void StartDefaultTask(void *argument)
 /* Private application code --------------------------------------------------*/
 /* USER CODE BEGIN Application */
 
+void vApplicationStackOverflowHook(xTaskHandle xTask, signed char *pcTaskName)
+{
+    /* 栈溢出时触发断点, 不关中断以保持 GDB 可调试 */
+    (void)xTask;
+    (void)pcTaskName;
+    __asm volatile("bkpt #0");  /* 硬件断点, 调试器会停在这里 */
+    for (;;) {}
+}
+
 /* USER CODE END Application */
 

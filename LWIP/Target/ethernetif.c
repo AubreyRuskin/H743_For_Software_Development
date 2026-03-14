@@ -46,7 +46,7 @@
  * Must be large enough for: ethernetif_input -> low_level_input ->
  * HAL_ETH_ReadData -> tcpip_input -> memp_malloc -> sys_arch_protect.
  * 350 bytes is far too small and causes stack overflow -> memory corruption. */
-#define INTERFACE_THREAD_STACK_SIZE ( 1024 )
+#define INTERFACE_THREAD_STACK_SIZE ( 4096 )
 /* USER CODE END OS_THREAD_STACK_SIZE_WITH_RTOS */
 /* Network interface name */
 #define IFNAME0 's'
