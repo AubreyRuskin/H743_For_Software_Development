@@ -240,6 +240,14 @@ SECTIONS
     . = ALIGN(8);
   } >DTCMRAM
 
+  /* FreeRTOS heap: 放在 AXI SRAM (0x24000000, 512KB) */
+  .freertos_heap (NOLOAD) :
+  {
+    . = ALIGN(8);
+    *(.freertos_heap)
+    . = ALIGN(8);
+  } >RAM
+
   .lwip_sec (NOLOAD) :
   {
     . = ABSOLUTE(0x30000000);

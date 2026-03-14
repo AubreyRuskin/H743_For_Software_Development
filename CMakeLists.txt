@@ -52,6 +52,7 @@ file(GLOB My_BSP_SOURCES "${CMAKE_SOURCE_DIR}/My_BSP/Src/*.c")
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user sources here
     ${My_BSP_SOURCES}
+    ${CMAKE_SOURCE_DIR}/Core/Src/freertos_heap_config.c
 )
 
 # Add include paths
