@@ -3,12 +3,6 @@
 
 /* Auto-generated compat header for <stdio.h> */
 
-#if defined(__has_include)
-#  if __has_include(<stdio.h>)
-#    include <stdio.h>
-#  endif
-#else
-#  include <stdio.h>
-#endif
+#include <stdio.h>
 
 #endif /* STDIO_COMPAT_H */

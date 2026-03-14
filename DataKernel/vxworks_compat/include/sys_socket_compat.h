@@ -1,14 +1,8 @@
 #ifndef SYS_SOCKET_COMPAT_H
 #define SYS_SOCKET_COMPAT_H
 
-/* Auto-generated compat header for <sys/socket.h> */
-
-#if defined(__has_include)
-#  if __has_include(<sys/socket.h>)
-#    include <sys/socket.h>
-#  endif
-#else
-#  include <sys/socket.h>
-#endif
+/* compat header for <sys/socket.h> */
+/* arm-none-eabi 没有 BSD socket, 使用 lwIP 的 socket 兼容层 */
+#include "lwip/sockets.h"
 
 #endif /* SYS_SOCKET_COMPAT_H */

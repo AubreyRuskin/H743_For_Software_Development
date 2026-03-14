@@ -43,6 +43,7 @@ INCLUDES: smv_rx.h
 #include "spt_drv.h"  /* SPT总线支持 */
 #include "Smv_Go_CommStat_File.h"
 #include "iecgoose.h"
+#include "bsp.h"
 
 
 /* defines */
@@ -224,7 +225,7 @@ static BOOL smvParseDataSet(UINT8 *ptr, ASDU_INFO *pAsduInfo);
  * Return:
  *     状态.
  */
-static int smvQueueCallback_type05(UINT8 port, UINT8 *ptr, int revSubLen)
+static int smvQueueCallback_type05(UINT8 port, UINT8 *ptr, uint32_t revSubLen, int para1, int para2)
 {
     UINT16 i = 0, j, chn = 0;
     UINT16 nLength;
@@ -952,7 +953,7 @@ static BOOL smvParseLineDataSet(UINT8 *ptr, ASDU_INFO *pAsduInfo)
  * Return:
  *     状态.
  */
-static int smvQueueCallback_type22(UINT8 port, UINT8 *ptr, int revSubLen)
+static int smvQueueCallback_type22(UINT8 port, UINT8 *ptr, uint32_t revSubLen, int para1, int para2)
 {
 
 

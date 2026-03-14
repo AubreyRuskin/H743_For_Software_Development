@@ -1,14 +1,8 @@
 #ifndef SYS_TYPES_COMPAT_H
 #define SYS_TYPES_COMPAT_H
 
-/* Auto-generated compat header for <sys/types.h> */
-
-#if defined(__has_include)
-#  if __has_include(<sys/types.h>)
-#    include <sys/types.h>
-#  endif
-#else
-#  include <sys/types.h>
-#endif
+/* compat header for <sys/types.h> */
+/* 直接复用 arm-none-eabi 工具链的定义，避免类型冲突 */
+#include <sys/types.h>
 
 #endif /* SYS_TYPES_COMPAT_H */

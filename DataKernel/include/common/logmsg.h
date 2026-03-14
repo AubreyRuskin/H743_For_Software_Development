@@ -32,7 +32,7 @@ extern "C" {
 #define LOG_RUN     0x0001	/* 运行信息，如开关变位、自检出错等 */
 #define LOG_OPRATE  0x0002  /* 操作信息，如修改定值、控制输出等 */
 #define LOG_ARITH   0x0004  /* 算法模块的信息，如数据异常等 */
-// #define LOG_INFO    0x0008  /* 信息处理模块的信息，如通信中断，规约异常等 */
+#define LOG_INFO    0x0008  /* 信息处理模块的信息，如通信中断，规约异常等 */
 #define LOG_KERNEL  0x0010  /* 底层支持模块的信息，如非法调用、程序复位等 */
 
 #define MAX_LOG_NUM 50000  /* 每次运行最多日志记录条数, 按MMI处理 */

@@ -3733,7 +3733,7 @@ void DSP_Scan_Drv(void)
 
         if (semTake(semQueueSD, WAIT_FOREVER) != OK)
         {
-        return ERROR;
+        return;
         }
         if (DeQueueSD(&SampDataQ, &pDataCur) == ERROR)
         {

@@ -3,12 +3,6 @@
 
 /* Auto-generated compat header for <stdint.h> */
 
-#if defined(__has_include)
-#  if __has_include(<stdint.h>)
-#    include <stdint.h>
-#  endif
-#else
-#  include <stdint.h>
-#endif
+#include <stdint.h>
 
 #endif /* STDINT_COMPAT_H */

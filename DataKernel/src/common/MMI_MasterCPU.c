@@ -657,7 +657,7 @@ void MasterCPU_socket_listen(
 )
 {
     struct sockaddr_in client_addr;
-    int sin_size;
+    socklen_t sin_size;
     int new_fd;
     TASK_ID tid;
     char staskname1[16]="server";/*sdm 从10改为16，防止PANEL_HMI_SUPPORT打开时越界访问*/

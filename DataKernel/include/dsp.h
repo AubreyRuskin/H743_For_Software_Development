@@ -63,9 +63,9 @@ extern "C" {
 #define ADJUST_STEP_NUM 256 							/* 零漂调整步数*/
 #define ZEROCYCLENUM 4					/* 零漂计算周波数 */
 #define MSUCYCLENUM 4												/* 测量计算周波数 */
-#define R (1000)									/* 滤波电阻，低压所要求截止频率为2600Hz */
-#define C (0.000000022)									/* 滤波电容 */
-#define RC2 (R*R*C*C)
+#define DSP_FILTER_R (1000)									/* 滤波电阻，低压所要求截止频率为2600Hz */
+#define DSP_FILTER_C (0.000000022)									/* 滤波电容 */
+#define RC2 (DSP_FILTER_R*DSP_FILTER_R*DSP_FILTER_C*DSP_FILTER_C)
 #define MAXWAVE 5						/* 最大计算谐波次数 */
 #define TRANSCHNNUM		8
 #define TRANSCYCLENUM 3

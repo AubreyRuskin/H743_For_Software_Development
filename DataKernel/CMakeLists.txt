@@ -47,4 +47,7 @@ target_compile_options(datakernel PRIVATE
     -Werror=deprecated-declarations
 )
 
+# 链接 stm32cubemx 以获取 lwIP/FreeRTOS/HAL 等头文件路径
+target_link_libraries(datakernel PUBLIC stm32cubemx)
+
 message(STATUS "DataKernel will be built as static library target: datakernel")

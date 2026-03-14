@@ -1,15 +1,18 @@
 #include "logLib.h"
-#include <syslog.h>
+#include <stdio_compat.h>
 
-int logMsg (
-    char    *fmt,         /* 格式化字符串，类似 printf */
-    _Vx_usr_arg_t arg1,   /* 第1个参数 */
-    _Vx_usr_arg_t arg2,   /* 第2个参数 */
-    _Vx_usr_arg_t arg3,   /* 第3个参数 */
-    _Vx_usr_arg_t arg4,   /* 第4个参数 */
-    _Vx_usr_arg_t arg5,   /* 第5个参数 */
-    _Vx_usr_arg_t arg6    /* 第6个参数 */
-){
-    syslog(LOG_INFO, fmt, arg1, arg2, arg3, arg4, arg5, arg6);
+int logMsg(
+    char *fmt,
+    _Vx_usr_arg_t arg1,
+    _Vx_usr_arg_t arg2,
+    _Vx_usr_arg_t arg3,
+    _Vx_usr_arg_t arg4,
+    _Vx_usr_arg_t arg5,
+    _Vx_usr_arg_t arg6)
+{
+    /* TODO: 对接 FreeRTOS 下的日志输出 (UART/RTT 等) */
+    (void)fmt;
+    (void)arg1; (void)arg2; (void)arg3;
+    (void)arg4; (void)arg5; (void)arg6;
     return 0;
 }

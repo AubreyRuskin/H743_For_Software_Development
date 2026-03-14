@@ -1,20 +1,19 @@
 #ifndef MSG_QLIB_H
 #define MSG_QLIB_H
 
-#include <mqueue.h>
+// #include <mqueue.h>
 #include <vxworks_type.h>
 
 
 #define MAX_Q_NAME_LEN 32
 
 
-#include <time.h>
-#include <mqueue.h>
-#include <sys/types.h>
+#include "time_compat.h"
+#include "sys_types_compat.h"
 
 
 typedef struct VxMsgQ {
-    mqd_t  mqd;                  // 用于发送/接收的描述符
+    // mqd_t  mqd;                  // 用于发送/接收的描述符
     char   name[MAX_Q_NAME_LEN]; // 用于将来删除的队列名
 } VxMsgQ;
 typedef VxMsgQ* MSG_Q_ID;

@@ -1,174 +1,69 @@
 #include "bsp.h"
-// #include "eth_callback.h"
-#include <time.h>
+#include <time_compat.h>
 #include <stdio_compat.h>
-#include <string.h>
-#include <unistd.h>
-#include <sys/ioctl.h>
-#include <sys/socket.h>
-#include <net/if.h>
+#include <string_compat.h>
 
 uint32_t hdlcRecvNum;
 
-void vxTimeBaseGet (UINT32 * pTbu, UINT32 * pTbl){
-
-
-    // 获取当前时间戳（以微秒为单位）
-    struct timespec ts;
-    clock_gettime(CLOCK_MONOTONIC, &ts);
-    uint64_t total_microseconds = (uint64_t)ts.tv_sec * 1000000 + (uint64_t)(ts.tv_nsec / 1000);
-
-    // 将时间戳拆分为高32位和低32位
-    if (pTbu) {
-        *pTbu = (UINT32)(total_microseconds >> 32);
-    }
-    if (pTbl) {
-        *pTbl = (UINT32)(total_microseconds & 0xFFFFFFFF);
-    }
-}
-
-unsigned char Get_AD_Chip_Count()
+void vxTimeBaseGet(UINT32 *pTbu, UINT32 *pTbl)
 {
-    return 0;
+    /* TODO: 用 DWT->CYCCNT 或 HAL_GetTick 实现高精度时间戳 */
+    if (pTbu) *pTbu = 0;
+    if (pTbl) *pTbl = 0;
 }
-short Get_AD_Value(unsigned char chipId){
-    return 0;
-}
-void Init_Net()
+
+unsigned char Get_AD_Chip_Count(void) { return 0; }
+short Get_AD_Value(unsigned char chipId) { (void)chipId; return 0; }
+void Init_Net(void) { }
+void Init_Telnet(void) { }
+int IoPinInputHigh(IO_PIN_IN_FUN_TYPE funtype) { (void)funtype; return 0; }
+int IoPinOutputHigh(IO_PIN_OUT_FUN_TYPE funtype, int outVal) { (void)funtype; (void)outVal; return 0; }
+int Set_EthIP(unsigned char port, unsigned char *addr) { (void)port; (void)addr; return 0; }
+int Set_EthMacAdrs(unsigned char port, unsigned char *addr) { (void)port; (void)addr; return 0; }
+int Set_HdlcIP(unsigned char port, unsigned char *addr) { (void)port; (void)addr; return 0; }
+void Set_Hdlc_Out_Bit(unsigned char settingBit) { (void)settingBit; }
+int goose_send_raw(uint8_t portNum, uint8_t *sendBuf, int sendNum) { (void)portNum; (void)sendBuf; (void)sendNum; return 0; }
+int sysClkRateGet(void) { return 100; }
+void Write_FPGA_Program(void) { }
+
+int16_t Get_Boot_Context(void) { return -1; }
+int Get_Boot_Info(void) { return -1; }
+BOOL IS_Boot_From_Net(void) { return 0; }
+
+int read_ram_data(unsigned short addr, unsigned char *pBuf, unsigned short length)
 {
-    return;
+    (void)addr; (void)pBuf; (void)length;
+    return 0;
 }
-void Init_Telnet()
+
+uint16_t GetBspVer(void) { return 1; }
+
+int write_ram_data(unsigned short addr, unsigned char *pBuf, unsigned short length)
 {
-    return ;
-}
-int IoPinInputHigh(IO_PIN_IN_FUN_TYPE funtype){
+    (void)addr; (void)pBuf; (void)length;
     return 0;
-}
-int IoPinOutputHigh(IO_PIN_OUT_FUN_TYPE funtype, int outVal){
-    return 0;
-}
-int Set_EthIP(unsigned char port, unsigned char *addr){
-    return 0;
-}
-int Set_EthMacAdrs(unsigned char port, unsigned char *addr){
-        return 0;
-}
-int Set_HdlcIP(unsigned char port, unsigned char *addr){
-    return 0;
-}
-void Set_Hdlc_Out_Bit(unsigned char settingBit){
-    return ;
-}
-int goose_send_raw(uint8_t portNum, uint8_t *sendBuf, int sendNum){
-    return 0;
-}
-int sysClkRateGet (void){
-    return 0;
-}
-void    Write_FPGA_Program(){
-    return ;
 }
 
-int16_t Get_Boot_Context(){
-    return -1;
-}
+BOOL SIO_GetIOExsitSts(int iModAddr) { (void)iModAddr; return TRUE; }
+BOOL SIO_Is_Open_QD(void) { return 0; }
+int Get_Sys_Hw_Clock(UINT8 *buf) { (void)buf; return 0; }
+int Set_Sys_Hw_Clock(UINT8 *buf) { (void)buf; return 0; }
 
-int Get_Boot_Info()
+char *sysModel(void) { return "STM32H743"; }
+STATUS sysToMonitor(int startType) { (void)startType; return ERROR; }
+int sysProcNumGet(void) { return 0; }
+unsigned int Ffx_Get_Nand_Size_In_MegaByte(void) { return 0; }
+
+int mCastAddrAdd(unsigned char port, unsigned char *addr)
 {
-    return -1;
-}
- BOOL IS_Boot_From_Net(){
+    /* TODO: 用 lwIP netif 接口实现多播地址添加 */
+    (void)port; (void)addr;
     return 0;
- }
+}
 
-  int read_ram_data(
-    unsigned short addr,
-    unsigned char *pBuf,
-    unsigned short length
-)
+int set_i2c_mux_val(unsigned char index) { (void)index; return 0; }
+int get_sfp_status_val(unsigned char begin_adrs, unsigned char byte_cnt, unsigned char *buf)
 {
-    return 0;
-}
-
-uint16_t GetBspVer(){
-    return 1;
-}
-
-int write_ram_data(
-    unsigned short addr,
-    unsigned char *pBuf,
-    unsigned short length
-){
-    return 0;
-}
-
-BOOL SIO_GetIOExsitSts(int iModAddr){
-    return TRUE;
-}
-
-BOOL SIO_Is_Open_QD(){
-    return 0;
-}
-
-int Get_Sys_Hw_Clock(UINT8 *buf){
-    return 0;
-}
-int Set_Sys_Hw_Clock(UINT8 *buf){
-    return 0;
-}
-
-uint16_t GetBootromVer(){
-    return 1;
-}
-
-char * sysModel(void){
-    return NULL;
-}
-
-STATUS sysToMonitor(    int startType      ){
-    return ERROR;
-}
-
-int sysProcNumGet(void){
-    return 0;
-}
-
-unsigned int Ffx_Get_Nand_Size_In_MegaByte(){
-    return 0;
-}
-
-int mCastAddrAdd(unsigned char port, unsigned char *addr){
-    struct ifreq ifr;
-    int sockfd;
-    char ifname[IFNAMSIZ];
-
-    // 1. 创建一个用于ioctl操作的套接字
-    sockfd = socket(AF_INET, SOCK_DGRAM, 0);
-    if (sockfd < 0) {
-        perror("socket");
-        return -1;
-    }
-
-    // 2. 根据端口号生成接口名称 (例如, port 0 -> "eth0")
-    snprintf(ifname, IFNAMSIZ, "eth%d", port);
-
-    // 3. 准备 ifreq 结构体
-    memset(&ifr, 0, sizeof(ifr));
-    strncpy(ifr.ifr_name, ifname, IFNAMSIZ - 1);
-    ifr.ifr_name[IFNAMSIZ - 1] = '\0'; // 确保字符串以null结尾
-
-    // 4. 复制6字节的多播MAC地址
-    memcpy(ifr.ifr_hwaddr.sa_data, addr, 6);
-
-    // 5. 调用 ioctl 将多播地址添加到网卡驱动
-    if (ioctl(sockfd, SIOCADDMULTI, &ifr) < 0) {
-        perror("ioctl(SIOCADDMULTI)");
-        close(sockfd);
-        return -1;
-    }
-
-    // 6. 关闭套接字并返回成功
-    close(sockfd);
+    (void)begin_adrs; (void)byte_cnt; (void)buf;
     return 0;
 }

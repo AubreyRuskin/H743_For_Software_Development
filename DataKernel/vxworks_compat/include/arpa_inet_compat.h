@@ -1,14 +1,9 @@
 #ifndef ARPA_INET_COMPAT_H
 #define ARPA_INET_COMPAT_H
 
-/* Auto-generated compat header for <arpa/inet.h> */
-
-#if defined(__has_include)
-#  if __has_include(<arpa/inet.h>)
-#    include <arpa/inet.h>
-#  endif
-#else
-#  include <arpa/inet.h>
-#endif
+/* compat header for <arpa/inet.h> */
+/* arm-none-eabi 没有 arpa/inet.h, 使用 lwIP 提供的定义 */
+#include "lwip/sockets.h"
+#include "lwip/inet.h"
 
 #endif /* ARPA_INET_COMPAT_H */

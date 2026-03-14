@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <sys/types.h>
 typedef uint8_t UINT8;
 typedef int8_t INT8;
 typedef uint16_t UINT16;
@@ -39,7 +40,16 @@ typedef void    (*VOIDFUNCPTR)(); /* pointer to function returning void */
 typedef int  STATUS;
 // 模拟 VxWorks 宏定义
 #define OK                   0
+/*
+ * ERROR 宏与 STM32 HAL 的 ErrorStatus 枚举冲突 (stm32h7xx.h)
+ * 确保 stm32h7xx.h 的枚举已被解析后再定义此宏
+ */
+#if defined(STM32H743xx) || defined(STM32H7xx)
+#include "stm32h7xx.h"
+#endif
+#ifndef ERROR
 #define ERROR                (-1)
+#endif
 
 // typedef enum
 //     {

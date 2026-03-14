@@ -1,135 +1,101 @@
-// 告诉 C++ 编译器，我们正在实现一个可以被 C 调用的函数
-
 #include <vxWorks.h>
 #include <string.h>
-
 #include "vxworks_type.h"
+#include "taskLib.h"
 
-
-#include "taskLib.h" 
-
-
-// POSIX 头文件
-#include <pthread.h>
-#include <sched.h>
-
-
-
-
-
-
-typedef int (*VxTaskEntryFunc)(int, int, int, int, int, int, int, int, int,
-                               int);
-
-
- TASK_ID taskSpawn(char *name,      /* 任务名，一个字符串 */
-                             int priority,    /* 任务优先级 (0-255) */
-                             int options,     /* 任务选项 (位掩码) */
-                             int stackSize,   /* 任务栈大小 (字节) */
-                             FUNCPTR entryPt, /* 任务入口函数指针 */
-                             int arg1, /* 传递给入口函数的第1个参数 */
-                             int arg2, /* 传递给入口函数的第2个参数 */
-                             int arg3, /* 传递给入口函数的第3个参数 */
-                             int arg4, /* 传递给入口函数的第4个参数 */
-                             int arg5, /* 传递给入口函数的第5个参数 */
-                             int arg6, /* 传递给入口函数的第6个参数 */
-                             int arg7, /* 传递给入口函数的第7个参数 */
-                             int arg8, /* 传递给入口函数的第8个参数 */
-                             int arg9, /* 传递给入口函数的第9个参数 */
-                             int arg10 /* 传递给入口函数的第10个参数 */
-) {
- 
-
-  return NULL;
+TASK_ID taskSpawn(char *name, int priority, int options, int stackSize,
+                  FUNCPTR entryPt,
+                  int arg1, int arg2, int arg3, int arg4, int arg5,
+                  int arg6, int arg7, int arg8, int arg9, int arg10)
+{
+    /* TODO: 用 FreeRTOS xTaskCreate 实现 */
+    (void)name; (void)priority; (void)options; (void)stackSize;
+    (void)entryPt;
+    (void)arg1; (void)arg2; (void)arg3; (void)arg4; (void)arg5;
+    (void)arg6; (void)arg7; (void)arg8; (void)arg9; (void)arg10;
+    return 0;
 }
 
- TASK_ID taskNameToId(const char *name) {
- return ERROR;
+TASK_ID taskNameToId(const char *name)
+{
+    (void)name;
+    return 0;
 }
 
-int taskWait(TASK_ID tid, void **returnValue) {
-  if (tid == ERROR)
-    return -1;
-
-
-  return -1;
-}
-
-STATUS taskPrioritySet(TASK_ID tid, int newPriority) {
-  if (tid == ERROR)
-    return -1;
-
-  
-  return -1;
-}
-
-STATUS taskOptionsSet(TASK_ID tid, int options, int mask) {
-  
-  if (tid == ERROR)
-    return -1;
-
-  
-  return 0; // 假装成功
-}
-
-STATUS taskDelete(TASK_ID tid) {
-  if (tid == ERROR)
-    return -1;
-
-
-  return 0;
-}
-
-
-int taskLock(void) {
-    // 确保互斥锁只被初始化一次
-   
-    
-    return ERROR;
-}
-
-int taskUnlock(void) {
-   
-
-    return ERROR;
-}
-
-
-STATUS taskDelay(int ticks) {
-  
+STATUS taskPrioritySet(TASK_ID tid, int newPriority)
+{
+    /* TODO: 用 FreeRTOS vTaskPrioritySet 实现 */
+    (void)tid; (void)newPriority;
     return OK;
 }
 
-
-STATUS taskStatusString(TASK_ID tid,char* buf)
+STATUS taskOptionsSet(TASK_ID tid, int options, int mask)
 {
-  //todo: 实现任务状态查询
-  strcpy(buf,"READY");
-  return OK;
+    (void)tid; (void)options; (void)mask;
+    return OK;
 }
 
-
-STATUS taskIdVerify(int tid){
-  //todo 
-  return OK;
+STATUS taskDelete(TASK_ID tid)
+{
+    /* TODO: 用 FreeRTOS vTaskDelete 实现 */
+    (void)tid;
+    return OK;
 }
 
-TASK_ID taskIdSelf (void)
+int taskLock(void)
 {
-  return NULL;
+    /* TODO: 用 FreeRTOS vTaskSuspendAll 实现 */
+    return OK;
+}
+
+int taskUnlock(void)
+{
+    /* TODO: 用 FreeRTOS xTaskResumeAll 实现 */
+    return OK;
+}
+
+STATUS taskDelay(int ticks)
+{
+    /* TODO: 用 FreeRTOS vTaskDelay 实现 */
+    (void)ticks;
+    return OK;
+}
+
+STATUS taskStatusString(TASK_ID tid, char *buf)
+{
+    (void)tid;
+    strcpy(buf, "READY");
+    return OK;
+}
+
+STATUS taskIdVerify(int tid)
+{
+    (void)tid;
+    return OK;
+}
+
+TASK_ID taskIdSelf(void)
+{
+    /* TODO: 用 FreeRTOS xTaskGetCurrentTaskHandle 实现 */
+    return 0;
 }
 
 STATUS taskMsSleep(int ms)
 {
-  //todo
-    return taskDelay((ms * VX_SYS_CLK_RATE + 999) / 1000); // 向上取整
-}
-
-const char *taskName(TASK_ID tid){
-  return "task";
-}
-
-STATUS taskInfoGet(TASK_ID tid, TASK_DESC *pTaskDesc){
+    /* TODO: 用 FreeRTOS vTaskDelay(pdMS_TO_TICKS(ms)) 实现 */
+    (void)ms;
     return OK;
 }
 
+const char *taskName(TASK_ID tid)
+{
+    /* TODO: 用 FreeRTOS pcTaskGetName 实现 */
+    (void)tid;
+    return "task";
+}
+
+STATUS taskInfoGet(TASK_ID tid, TASK_DESC *pTaskDesc)
+{
+    (void)tid; (void)pTaskDesc;
+    return OK;
+}

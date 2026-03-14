@@ -126,8 +126,8 @@ void    hdlc_tx_rx()
     int i;
     int recvLen;
     unsigned char *pData;
-    unsigned int timeStartH, timeStartL;
-    unsigned int timeH, timeL;
+    UINT32 timeStartH, timeStartL;
+    UINT32 timeH, timeL;
     int maxDelay = 0;
 
     semHdlcwait = semBCreate (SEM_Q_FIFO, SEM_EMPTY);
