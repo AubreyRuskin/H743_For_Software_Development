@@ -1,0 +1,8 @@
+CompileFlags:
+  Add:
+    - --target=arm-none-eabi
+    - -mcpu=cortex-m7
+  Compiler: /usr/bin/arm-none-eabi-gcc
+
+Diagnostics:
+  UnusedIncludes: None
