@@ -32,7 +32,7 @@ INCLUDES: filetool.h
 #include "ctype_compat.h"
 #include <stdio_compat.h>
 #include <dirent_compat.h>
-#include <sys_stat_compat.h>
+#include <sys/stat.h>
 #include <ioLib.h>
 #include <lstLib.h>
 #include <semLib.h>

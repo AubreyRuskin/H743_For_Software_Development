@@ -2,7 +2,7 @@
 #include "detailoperate_log.h"
 #include "filetool.h"
 #include <dirent_compat.h>
-#include <sys_stat_compat.h>
+#include <sys/stat.h>
 #include "edpbase.h"
 #include "measure.h"
 #include "swcfg.h"

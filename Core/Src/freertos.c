@@ -31,7 +31,7 @@
 #include <string.h>
 
 /* USER CODE END Includes */
-
+int externMain(void);
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
 
@@ -175,15 +175,8 @@ void StartDefaultTask(void *argument)
     /* Verification failed: toggle LED once and stop */
     HAL_GPIO_TogglePin(GPIOH, GPIO_PIN_7);
   }
+  externMain();
 
-  /* Infinite loop */
-  for(;;)
-  {
-    if (ok) {
-      HAL_GPIO_TogglePin(GPIOH, GPIO_PIN_7);
-    }
-    osDelay(500);
-  }
   /* USER CODE END StartDefaultTask */
 }
 

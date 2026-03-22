@@ -25,7 +25,7 @@ extern "C" {
 //#include "vxWorks.h"
 #include "filetool.h"
 #include <dirent_compat.h>
-#include <sys_stat_compat.h>
+#include <sys/stat.h>
 #include "time_compat.h"
 #include <lstLib.h>
 #include <dirent_compat.h>

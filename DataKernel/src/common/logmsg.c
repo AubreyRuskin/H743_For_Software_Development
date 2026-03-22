@@ -29,7 +29,7 @@ INCLUDE: logmsg.h
 #include <semLib.h>
 #include <taskLib.h>
 #include <intLib.h>
-#include <sys_stat_compat.h>
+#include <sys/stat.h>
 #include "miscfunc.h"
 #include "sys_ioctl_compat.h"
 #include "unistd_compat.h"

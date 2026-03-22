@@ -28,7 +28,7 @@ INCLUDES: MMI_MasterCPU.h
 // #include "sysLib.h"
 // #include "tickLib.h"
 #include <dirent_compat.h>
-#include <sys_stat_compat.h>
+#include <sys/stat.h>
 #include "time_compat.h"
 // #include <routeLib.h>
 

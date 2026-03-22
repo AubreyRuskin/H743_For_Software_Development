@@ -21,7 +21,7 @@ V1.00         2015.03.03    kevin         初始版本
 #include "iecgoose.h"
 #include "smvcfg.h"
 #include "edp_asst.h"
-#include <sys_stat_compat.h>
+#include <sys/stat.h>
 #include "mxml.h"
 
 int g_iCcGcbCnt = 0;        /*CC转发的goose控制块个数，包括CCD中的发送和接收GS总和*/

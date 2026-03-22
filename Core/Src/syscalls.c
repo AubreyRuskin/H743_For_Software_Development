@@ -30,6 +30,8 @@
 #include <sys/time.h>
 #include <sys/times.h>
 
+#include "lfs_port.h"
+
 
 /* Variables */
 extern int __io_putchar(int ch) __attribute__((weak));
@@ -147,8 +149,54 @@ clock_t _times(struct tms *buf)
 
 int _stat(const char *file, struct stat *st)
 {
-  (void)file;
+  lfs_t *lfs;
+  struct lfs_info info;
+  int rc;
+
+  if ((file == NULL) || (st == NULL))
+  {
+    errno = EINVAL;
+    return -1;
+  }
+
+  lfs = lfs_port_fs();
+  if (lfs != NULL)
+  {
+    rc = lfs_stat(lfs, file, &info);
+    if (rc == 0)
+    {
+      st->st_mode = (info.type == LFS_TYPE_DIR) ? S_IFDIR : S_IFREG;
+      st->st_size = (off_t)info.size;
+      return 0;
+    }
+
+    switch (rc)
+    {
+    case LFS_ERR_NOENT:
+      errno = ENOENT;
+      break;
+    case LFS_ERR_NOTDIR:
+      errno = ENOTDIR;
+      break;
+    case LFS_ERR_EXIST:
+      errno = EEXIST;
+      break;
+    case LFS_ERR_NOMEM:
+      errno = ENOMEM;
+      break;
+    case LFS_ERR_IO:
+      errno = EIO;
+      break;
+    default:
+      errno = EIO;
+      break;
+    }
+    return -1;
+  }
+
+  /* Fallback before littlefs is mounted: keep console-like behavior. */
   st->st_mode = S_IFCHR;
+  st->st_size = 0;
   return 0;
 }
 

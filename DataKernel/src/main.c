@@ -429,7 +429,7 @@ void EDP_Init_Net(void)
 *
 */
 /* void externMain() */
-int main(int argc, char *argv[])
+int externMain()
 {
     uint64_t ullTimebasePeriod_ns;
     uint32_t ulBaseH, ulBaseL;
@@ -521,7 +521,13 @@ int main(int argc, char *argv[])
         printf("Init task failure.\n");
     }
 
-    pthread_exit(NULL); //避免杀死子线程
+    /* externMain is entered from defaultTask; finish by exiting current thread. */
+    if (taskIdSelf() != 0)
+    {
+        (void)taskDelete(0);
+    }
+
+    return 0;
 
 }
 
@@ -1320,7 +1326,7 @@ int Init_Task(int arg1, int arg2, int arg3, int arg4, int arg5,
 
     //EDP_CheckCcStatus();
 
-    pthread_exit(0);
+
     return 0;
 }
 
