@@ -1,6 +1,7 @@
 #ifndef IO_LIB_H
 #define IO_LIB_H
 #include <unistd.h>
+#include "fcntl_compat.h"
 
 
 

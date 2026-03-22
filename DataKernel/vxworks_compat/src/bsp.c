@@ -38,6 +38,12 @@ int read_ram_data(unsigned short addr, unsigned char *pBuf, unsigned short lengt
 
 uint16_t GetBspVer(void) { return 1; }
 
+uint16_t GetBootromVer(void)
+{
+    /* TODO: read real BootROM version from platform-specific source. */
+    return GetBspVer();
+}
+
 int write_ram_data(unsigned short addr, unsigned char *pBuf, unsigned short length)
 {
     (void)addr; (void)pBuf; (void)length;

@@ -4,7 +4,19 @@
 /* compat header for <fcntl.h> */
 
 #include <sys/types.h>
-// #include <fcntl.h>
+#include <fcntl.h>
+
+#ifndef O_RDONLY
+#define O_RDONLY 0x0000
+#endif
+
+#ifndef O_WRONLY
+#define O_WRONLY 0x0001
+#endif
+
+#ifndef O_RDWR
+#define O_RDWR 0x0002
+#endif
 
 #ifdef __cplusplus
 extern "C" {
