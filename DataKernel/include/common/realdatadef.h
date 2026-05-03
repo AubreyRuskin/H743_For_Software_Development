@@ -40,17 +40,17 @@ extern "C" {
 #define CPU_AO_ADDR 100   /*AO地址 */
 
 #ifdef EDP02_GTP_BUILD /* 发变组保护 */
-#define MAX_MOD_NUM 17              /* 每机箱中最多IO子模件个数 ，增加了主板上的开入子模件，16改为11，加快启动时间 */
+#define MAX_MOD_NUM 3              /* 每机箱中最多IO子模件个数 ，增加了主板上的开入子模件，16改为11，加快启动时间 */
 #else
-#define MAX_MOD_NUM 11              /* 每机箱中最多IO子模件个数 ，增加了主板上的开入子模件，16改为11，加快启动时间 */
+#define MAX_MOD_NUM 2              /* 每机箱中最多IO子模件个数 ，增加了主板上的开入子模件，16改为11，加快启动时间 */
 #endif
 
 #if defined(EDP02_PSR_BUILD)
 #define MAX_DO_PER_MOD 320     /* 每子模件中最多DO通道数 */
 #define MAX_DI_PER_MOD  320              /* 每子模件中最多DI通道数 */
 #else
-#define MAX_DO_PER_MOD 128     /* 每子模件中最多DO通道数 */
-#define MAX_DI_PER_MOD 128              /* 每子模件中最多DI通道数 */
+#define MAX_DO_PER_MOD 16     /* 每子模件中最多DO通道数 */
+#define MAX_DI_PER_MOD 16              /* 每子模件中最多DI通道数 */
 
 #endif
 

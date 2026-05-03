@@ -61,7 +61,7 @@ BOOL HDL_GOOSE_SUB_NET_CFG[SUB_GOOSE_GRP_MAX_NUM][MAX_GSE_NET_CNT];
 extern BOOL EP_GetStormState();
 
 /*2013-6-5日 虚端子配置信息全局变量定义（供HMI查询） ZY */
-HDL_TOTAL_VT_DI_TERM_CFG   HDL_TotalVtDITermCfg_g;
+HDL_TOTAL_VT_DI_TERM_CFG   HDL_TotalVtDITermCfg_g __attribute__((section(".bss_ram3")));
 
 /*用于虚端子状态显示的GOOSE真实通信状态,不经压板处理，2013-6-26  ZY*/
 BOOL HDL_GOOSE_SUB_REAL_COMM_STATUS[SUB_GOOSE_GRP_MAX_NUM][MAX_GSE_NET_CNT]= {{TRUE}};

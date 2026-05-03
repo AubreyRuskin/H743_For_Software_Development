@@ -35,7 +35,7 @@ INCLUDE: logmsg.h
 #include "unistd_compat.h"
 /* defines */
 
-#define LOG_BUF_NUM     256				/* The number of LOG. */
+#define LOG_BUF_NUM     64				/* The number of LOG. */
 #define LOG_FILE_BUF_SIZE   150000L  					/* The size of the buffer for LOG file, now is 150000 Bytes, the old is 500000. */
 #define LOG_MAX_LOG_NUM   1000      /*日志文件记录最大日志个数，包括2种类型  */
 #define LOG_MAX_EX_LOG_NUM   100    /*日志文件记录的最大特殊日志个数  */
@@ -54,7 +54,7 @@ typedef struct
 /* locals */
 
 static SEM_ID semWrLog_g;				/* sem for LOG */
-static LOG_BUF alogBuf_g[LOG_BUF_NUM];							/* Buffer for LOG. */
+static LOG_BUF alogBuf_g[LOG_BUF_NUM] __attribute__((section(".bss_dtcm")));							/* Buffer for LOG. */
 static int iBufUsed_g;						/* The number of LOG that can be used. */
 
 static int iWrLogFd_g=-1;							/* 日志文件的句柄 */

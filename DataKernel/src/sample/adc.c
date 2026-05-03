@@ -189,8 +189,8 @@ BOOL bExtBoxCoffUpdate = FALSE; /* 扩展机箱系数更新标志 */
 uint16_t usCoffUpdateCount;  /* 系数更新时计数,与bExtBoxCoffUpdate变量配合使用 */
 
 /*为扩展机箱启动，移植至此*/
-INT32 send_data[MAXQSIZESAMPDATA+1][MAXCHNELS];
-uint32_t send_data_sts[MAXQSIZESAMPDATA+1][MAXCHNELS];
+INT32 send_data[MAXQSIZESAMPDATA+1][MAXCHNELS] __attribute__((section(".bss_ram2")));
+uint32_t send_data_sts[MAXQSIZESAMPDATA+1][MAXCHNELS] __attribute__((section(".bss_ram2")));
 
 /* 扩展机箱同步相关变量 */
 BOOL bFstSynFlag=TRUE;  /* 首次同步控制标志 */

@@ -441,7 +441,7 @@ enum   LUBO_PERSIST_TIME_TYPE /*//录波持续时间类型*/
 
 /**********允许创建的最多保护功能分图任务数目*************/
 
-#define    MAX_CREATE_RELAYFUNC_TASK_COUNT     8
+#define    MAX_CREATE_RELAYFUNC_TASK_COUNT     4
 
 
 
@@ -456,7 +456,7 @@ enum   LUBO_PERSIST_TIME_TYPE /*//录波持续时间类型*/
 
 /**********允许的最多投入运行的独立保护功能数目********************/
 
-#define    MAX_RELAY_FUNC_COUNT     200
+#define    MAX_RELAY_FUNC_COUNT     32
 
 
 

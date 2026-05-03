@@ -31,7 +31,7 @@
 
 #include "dsp.h"
 #include "mxml.h"
-#define SMV_9_1_CHANNUM		4
+#define SMV_9_1_CHANNUM		1
 #define SMV_AD_CHANNUM		1
 #define SMV_FT3_CHANNUM		6
 #define SMV_SLF_CHANNUM		50

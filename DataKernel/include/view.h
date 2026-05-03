@@ -42,7 +42,7 @@ extern "C" {
 
 /* defines */
 
-#define SZ_RUN_INFO_BUF 3072
+#define SZ_RUN_INFO_BUF 256
 /* #define SZ_VALID_INFO_BUF 512 */  /* 有效数据访问大小,必须比SZ_RUN_INFO_BUF小很多 */
 #define SZ_VALID_INFO_BUF (SZ_RUN_INFO_BUF/2)			/* DY 增大7/23/2007 */
 

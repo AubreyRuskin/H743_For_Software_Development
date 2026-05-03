@@ -81,7 +81,35 @@ LoopCopyDataInit:
   adds r4, r0, r3
   cmp r4, r1
   bcc CopyDataInit
-/* Zero fill the bss segment. */
+/* Zero fill the bss segments across all RAM regions.
+   BSS is now split across ITCMRAM, DTCMRAM, RAM, RAM_D2, RAM_D3.
+   Each region must be zeroed separately. */
+
+  /* ---- BSS region: ITCMRAM ---- */
+  ldr r2, =__bss_itcm_start
+  ldr r4, =__bss_itcm_end
+  movs r3, #0
+  b LoopFillZerobss_itcm
+FillZerobss_itcm:
+  str  r3, [r2]
+  adds r2, r2, #4
+LoopFillZerobss_itcm:
+  cmp r2, r4
+  bcc FillZerobss_itcm
+
+  /* ---- BSS region: DTCMRAM ---- */
+  ldr r2, =__bss_dtcm_start
+  ldr r4, =__bss_dtcm_end
+  movs r3, #0
+  b LoopFillZerobss_dtcm
+FillZerobss_dtcm:
+  str  r3, [r2]
+  adds r2, r2, #4
+LoopFillZerobss_dtcm:
+  cmp r2, r4
+  bcc FillZerobss_dtcm
+
+  /* ---- BSS region: RAM (AXI SRAM, main) ---- */
   ldr r2, =_sbss
   ldr r4, =_ebss
   movs r3, #0
@@ -94,6 +122,30 @@ FillZerobss:
 LoopFillZerobss:
   cmp r2, r4
   bcc FillZerobss
+
+  /* ---- BSS region: RAM_D2 ---- */
+  ldr r2, =__bss_ram2_start
+  ldr r4, =__bss_ram2_end
+  movs r3, #0
+  b LoopFillZerobss_ram2
+FillZerobss_ram2:
+  str  r3, [r2]
+  adds r2, r2, #4
+LoopFillZerobss_ram2:
+  cmp r2, r4
+  bcc FillZerobss_ram2
+
+  /* ---- BSS region: RAM_D3 ---- */
+  ldr r2, =__bss_ram3_start
+  ldr r4, =__bss_ram3_end
+  movs r3, #0
+  b LoopFillZerobss_ram3
+FillZerobss_ram3:
+  str  r3, [r2]
+  adds r2, r2, #4
+LoopFillZerobss_ram3:
+  cmp r2, r4
+  bcc FillZerobss_ram3
 
 /* Call static constructors */
     bl __libc_init_array

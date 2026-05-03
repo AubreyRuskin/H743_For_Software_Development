@@ -171,7 +171,7 @@ int iMeaAiNum_g;
 int iMeaDiNum_g;
 int iMeaDoNum_g;
 int iEvtNum_g;
-VI_RUN_INFO arinf_g[SZ_RUN_INFO_BUF];
+VI_RUN_INFO arinf_g[SZ_RUN_INFO_BUF] __attribute__((section(".bss_dtcm")));
 u_int uiCurInfIdx_g;
 u_int uiCurInfPos_g;
 SEM_ID semNewInfCom_g;

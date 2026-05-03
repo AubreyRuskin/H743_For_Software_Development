@@ -132,7 +132,7 @@ RD_AI_MOD aimodPole_g;    /*为同杆并架添加  2007-3-20  */
 RD_AI_MOD aimodHdl_g;
 RD_AI_MOD aimodOpt_g[2];  /*为光纵添加 2006-2-8 */
 RD_AI_MOD aimodVtBox_g[MAX_VT_BOX_COUNT];			/* 虚拟机箱 */
-RD_PART_INFO apartinf_g[MAX_PART_NUM];
+RD_PART_INFO apartinf_g[MAX_PART_NUM] __attribute__((section(".bss_dtcm")));
 int iLgcDiChNum_g;
 RD_LGC_DI_CH *plgcdich_g;
 BOOL bStopRefreshData=FALSE;

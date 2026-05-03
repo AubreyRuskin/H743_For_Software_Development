@@ -41,7 +41,7 @@ int iHDLAiNum_g=0;
 int iHDLAoNum_g=0;
 
 HDL_BOX_AO_CFG    HdlBoxAoCfg_g;  /*智能操作机箱AO配置  */
-HDL_BOX_IO_INFO   HdlBoxIOInfo_g; /*智能操作机箱IO配置  */
+HDL_BOX_IO_INFO   HdlBoxIOInfo_g __attribute__((section(".bss_ram2"))); /*智能操作机箱IO配置  */
 HDL_BOX_AI_CFG    HdlBoxAICfg_g;  /*智能操作机箱AI配置  */
 
 BOOL   bHdlBoxIsInit_g=FALSE;  /*智能操作机箱被初始化标志  */
