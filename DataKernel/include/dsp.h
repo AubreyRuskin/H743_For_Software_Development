@@ -40,8 +40,8 @@ extern "C" {
 /* EDP02平台增加通道数无内存问题 */
 #ifdef EDP_01_02_BUILD
 #ifdef EDP02_GTP_BUILD
-#define MAXHCHNNUM 10				/* EDP01平台C-A版最大硬件通道数 */
-#define HCHNNUM 10 											/* 硬件最大通道数 */
+#define MAXHCHNNUM 5				/* EDP01平台C-A版最大硬件通道数 */
+#define HCHNNUM 5 											/* 硬件最大通道数 */
 #else
 #define MAXHCHNNUM 96				/* EDP01平台C-A版最大硬件通道数 */
 #define HCHNNUM 96 											/* 硬件最大通道数 */

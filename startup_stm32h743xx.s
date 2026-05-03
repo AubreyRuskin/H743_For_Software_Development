@@ -82,20 +82,8 @@ LoopCopyDataInit:
   cmp r4, r1
   bcc CopyDataInit
 /* Zero fill the bss segments across all RAM regions.
-   BSS is now split across ITCMRAM, DTCMRAM, RAM, RAM_D2, RAM_D3.
+   BSS is now split across DTCMRAM, RAM, RAM_D2, RAM_D3.
    Each region must be zeroed separately. */
-
-  /* ---- BSS region: ITCMRAM ---- */
-  ldr r2, =__bss_itcm_start
-  ldr r4, =__bss_itcm_end
-  movs r3, #0
-  b LoopFillZerobss_itcm
-FillZerobss_itcm:
-  str  r3, [r2]
-  adds r2, r2, #4
-LoopFillZerobss_itcm:
-  cmp r2, r4
-  bcc FillZerobss_itcm
 
   /* ---- BSS region: DTCMRAM ---- */
   ldr r2, =__bss_dtcm_start

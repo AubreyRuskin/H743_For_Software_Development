@@ -42,7 +42,7 @@ float *pInstant_YesZero;			/* The current pointer to the data buffer considering
 
 DSPINFO DspInfo;
 DSPCOE DspCoe;
-DSPRESULT DspResult __attribute__((section(".bss_itcm")));
+DSPRESULT DspResult;
 /*ANALOGBUFHANDLE AnalogBufHandle;*/
 
 /* 合并版在所有平台都定义 */

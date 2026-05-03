@@ -356,7 +356,7 @@ IEC_SMV_9_1_CFG *GetSmvChn(uint8_t* addr, uint16_t appID);
 #define FT3_PORT_NUM 2    /* FT3接收端口个数 */
 
 /* SUB/PUB数量 */
-#define MAX_SUB_NUM 7    /* 最多允许7路接收: 2路9-2, 2路FT3, 1路A/D采样，1路A/D复采，1路合流通道 */
+#define MAX_SUB_NUM 2   /* 最多允许7路接收: 2路9-2, 2路FT3, 1路A/D采样，1路A/D复采，1路合流通道 */
 #define MAX_PUB_NUM 2   /* 最多两种发送配置,分别以9-2以及FT3格式发送 */
 
 /* SUB/PUB最大通道数 */

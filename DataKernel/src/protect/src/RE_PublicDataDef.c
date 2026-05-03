@@ -176,7 +176,7 @@ LIST   RE_aPartGrpScanNodeList[MAX_RELAY_FUNC_COUNT];
 /*    所有独立保护分图的属性数组，
 
 */
-PARTGRP_ATTRIB_TYPE   RE_aPartGrpAttribArr[MAX_RELAY_FUNC_COUNT] __attribute__((section(".bss_itcm")));
+PARTGRP_ATTRIB_TYPE   RE_aPartGrpAttribArr[MAX_RELAY_FUNC_COUNT];
 
 /* 扫描节点入口函数数组 */
 SCAN_UNIT *RE_arrScanUnit[MAX_RELAY_FUNC_COUNT];

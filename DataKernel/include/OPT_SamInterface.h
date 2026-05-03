@@ -30,9 +30,9 @@ extern "C" {
 
 /* defines */
 
-#define MAX_OPT_AI_NUM 40   /* 光纵AI的最大数目 */
-#define MAX_OPT_AO_NUM 40   /* 光纵AO的最大数目 */
-#define OPT_BUF_LENGTH 1400
+#define MAX_OPT_AI_NUM 2   /* 光纵AI的最大数目 */
+#define MAX_OPT_AO_NUM 2   /* 光纵AO的最大数目 */
+#define OPT_BUF_LENGTH 100
 
 /* typedefs */
 

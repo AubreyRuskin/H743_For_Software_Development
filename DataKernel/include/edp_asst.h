@@ -32,8 +32,8 @@ extern "C" {
 
 #define INFO_MAX_LEN 16 /* 信息长度 */
 #define MAX_CC_PORT_NUM 12 /* CC板最大端口数 */
-#define MAX_CC_BOARD_NUM 32  /* 最大CC板个数 */
-#define MAX_CC_BOARD_ID_NUM 32 /* 最大CC板板号个数 */
+#define MAX_CC_BOARD_NUM 2  /* 最大CC板个数 */
+#define MAX_CC_BOARD_ID_NUM 2 /* 最大CC板板号个数 */
 #define MASK_NET_STORM 0x01  /* 网络风暴位 */
 #define MAX_NET_STORM_CNT 32 /* 最多网络风暴计数次数 */
 

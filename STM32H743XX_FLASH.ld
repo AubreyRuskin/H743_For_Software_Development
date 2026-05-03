@@ -188,16 +188,6 @@ SECTIONS
     . = ALIGN(8);
   } >DTCMRAM
 
-  /* ---- ITCMRAM (64KB): medium BSS items ---- */
-
-  .bss_itcm (NOLOAD) : ALIGN(4)
-  {
-    __bss_itcm_start = .;
-    *(.bss_itcm .bss_itcm.*)
-    . = ALIGN(4);
-    __bss_itcm_end = .;
-  } >ITCMRAM
-
   /* ---- RAM (AXI SRAM 512KB): FreeRTOS heap + main .bss ---- */
 
   .freertos_heap (NOLOAD) :
