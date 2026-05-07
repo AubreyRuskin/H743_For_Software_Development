@@ -22,6 +22,10 @@
 
 /* Includes */
 #include <sys/stat.h>
+#include <fcntl.h>
+#include <stdarg.h>
+#include <stdint.h>
+#include <string.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <stdio.h>
@@ -40,6 +44,167 @@ extern int __io_getchar(void) __attribute__((weak));
 
 char *__env[1] = { 0 };
 char **environ = __env;
+
+#ifndef O_ACCMODE
+#define O_ACCMODE (O_RDONLY | O_WRONLY | O_RDWR)
+#endif
+
+#define SYS_FILE_FD_BASE 3
+#define SYS_FILE_FD_MAX  8
+
+typedef struct
+{
+  lfs_t *fs;
+  lfs_file_t file;
+  int in_use;
+} sys_file_fd_t;
+
+static sys_file_fd_t g_file_fds[SYS_FILE_FD_MAX];
+
+static void set_errno_from_lfs(int rc)
+{
+  switch (rc)
+  {
+  case LFS_ERR_NOENT:
+    errno = ENOENT;
+    break;
+  case LFS_ERR_NOTDIR:
+    errno = ENOTDIR;
+    break;
+  case LFS_ERR_EXIST:
+    errno = EEXIST;
+    break;
+  case LFS_ERR_NOMEM:
+    errno = ENOMEM;
+    break;
+  case LFS_ERR_IO:
+    errno = EIO;
+    break;
+  case LFS_ERR_INVAL:
+    errno = EINVAL;
+    break;
+  case LFS_ERR_BADF:
+    errno = EBADF;
+    break;
+  case LFS_ERR_ISDIR:
+    errno = EISDIR;
+    break;
+  case LFS_ERR_NAMETOOLONG:
+    errno = ENAMETOOLONG;
+    break;
+  case LFS_ERR_FBIG:
+    errno = EFBIG;
+    break;
+  case LFS_ERR_NOSPC:
+    errno = ENOSPC;
+    break;
+  default:
+    errno = EIO;
+    break;
+  }
+}
+
+static lfs_t *get_lfs_or_init(void)
+{
+  lfs_t *lfs = lfs_port_fs();
+  int rc;
+
+  if (lfs != NULL)
+  {
+    return lfs;
+  }
+
+  rc = lfs_port_init();
+  if (rc < 0)
+  {
+    set_errno_from_lfs(rc);
+    return NULL;
+  }
+
+  lfs = lfs_port_fs();
+  if (lfs == NULL)
+  {
+    errno = EIO;
+  }
+
+  return lfs;
+}
+
+static int map_open_flags(int flags)
+{
+  int lfs_flags = 0;
+
+  switch (flags & O_ACCMODE)
+  {
+  case O_RDONLY:
+    lfs_flags |= LFS_O_RDONLY;
+    break;
+  case O_WRONLY:
+    lfs_flags |= LFS_O_WRONLY;
+    break;
+  case O_RDWR:
+    lfs_flags |= LFS_O_RDWR;
+    break;
+  default:
+    errno = EINVAL;
+    return -1;
+  }
+
+  if ((flags & O_CREAT) != 0)
+  {
+    lfs_flags |= LFS_O_CREAT;
+  }
+  if ((flags & O_EXCL) != 0)
+  {
+    lfs_flags |= LFS_O_EXCL;
+  }
+  if ((flags & O_TRUNC) != 0)
+  {
+    lfs_flags |= LFS_O_TRUNC;
+  }
+  if ((flags & O_APPEND) != 0)
+  {
+    lfs_flags |= LFS_O_APPEND;
+  }
+
+  return lfs_flags;
+}
+
+static int alloc_file_fd(void)
+{
+  int idx;
+
+  for (idx = 0; idx < SYS_FILE_FD_MAX; idx++)
+  {
+    if (!g_file_fds[idx].in_use)
+    {
+      g_file_fds[idx].in_use = 1;
+      g_file_fds[idx].fs = NULL;
+      memset(&g_file_fds[idx].file, 0, sizeof(g_file_fds[idx].file));
+      return SYS_FILE_FD_BASE + idx;
+    }
+  }
+
+  errno = EMFILE;
+  return -1;
+}
+
+static sys_file_fd_t *get_file_fd(int fd)
+{
+  int idx = fd - SYS_FILE_FD_BASE;
+
+  if ((fd < SYS_FILE_FD_BASE) || (idx < 0) || (idx >= SYS_FILE_FD_MAX))
+  {
+    return NULL;
+  }
+
+  if (!g_file_fds[idx].in_use)
+  {
+    return NULL;
+  }
+
+  return &g_file_fds[idx];
+}
 
 
 /* Functions */
@@ -68,63 +233,273 @@ void _exit (int status)
 
 __attribute__((weak)) int _read(int file, char *ptr, int len)
 {
-  (void)file;
   int DataIdx;
+  sys_file_fd_t *ctx;
+  lfs_ssize_t rc;
 
-  for (DataIdx = 0; DataIdx < len; DataIdx++)
+  if ((ptr == NULL) || (len < 0))
   {
-    *ptr++ = __io_getchar();
+    errno = EINVAL;
+    return -1;
   }
 
-  return len;
+  if (file < SYS_FILE_FD_BASE)
+  {
+    for (DataIdx = 0; DataIdx < len; DataIdx++)
+    {
+      *ptr++ = __io_getchar();
+    }
+
+    return len;
+  }
+
+  ctx = get_file_fd(file);
+  if (ctx == NULL)
+  {
+    errno = EBADF;
+    return -1;
+  }
+
+  if (ctx->fs == NULL)
+  {
+    errno = EIO;
+    return -1;
+  }
+
+  rc = lfs_file_read(ctx->fs, &ctx->file, ptr, (lfs_size_t)len);
+  if (rc < 0)
+  {
+    set_errno_from_lfs((int)rc);
+    return -1;
+  }
+
+  DataIdx = (int)rc;
+  return DataIdx;
 }
 
 __attribute__((weak)) int _write(int file, char *ptr, int len)
 {
-  (void)file;
   int DataIdx;
+  sys_file_fd_t *ctx;
+  lfs_ssize_t rc;
 
-  for (DataIdx = 0; DataIdx < len; DataIdx++)
+  if ((ptr == NULL) || (len < 0))
   {
-    __io_putchar(*ptr++);
+    errno = EINVAL;
+    return -1;
   }
-  return len;
+
+  if (file < SYS_FILE_FD_BASE)
+  {
+    for (DataIdx = 0; DataIdx < len; DataIdx++)
+    {
+      __io_putchar(*ptr++);
+    }
+    return len;
+  }
+
+  ctx = get_file_fd(file);
+  if (ctx == NULL)
+  {
+    errno = EBADF;
+    return -1;
+  }
+
+  if (ctx->fs == NULL)
+  {
+    errno = EIO;
+    return -1;
+  }
+
+  rc = lfs_file_write(ctx->fs, &ctx->file, ptr, (lfs_size_t)len);
+  if (rc < 0)
+  {
+    set_errno_from_lfs((int)rc);
+    return -1;
+  }
+
+  DataIdx = (int)rc;
+  return DataIdx;
 }
 
 int _close(int file)
 {
-  (void)file;
-  return -1;
+  sys_file_fd_t *ctx;
+  int rc;
+
+  if (file < SYS_FILE_FD_BASE)
+  {
+    return 0;
+  }
+
+  ctx = get_file_fd(file);
+  if (ctx == NULL)
+  {
+    errno = EBADF;
+    return -1;
+  }
+
+  rc = lfs_file_close(ctx->fs, &ctx->file);
+  ctx->in_use = 0;
+  ctx->fs = NULL;
+  memset(&ctx->file, 0, sizeof(ctx->file));
+
+  if (rc < 0)
+  {
+    set_errno_from_lfs(rc);
+    return -1;
+  }
+
+  return 0;
 }
 
 
 int _fstat(int file, struct stat *st)
 {
-  (void)file;
-  st->st_mode = S_IFCHR;
+  sys_file_fd_t *ctx;
+  lfs_soff_t size;
+
+  if (st == NULL)
+  {
+    errno = EINVAL;
+    return -1;
+  }
+
+  if (file < SYS_FILE_FD_BASE)
+  {
+    st->st_mode = S_IFCHR;
+    st->st_size = 0;
+    return 0;
+  }
+
+  ctx = get_file_fd(file);
+  if (ctx == NULL)
+  {
+    errno = EBADF;
+    return -1;
+  }
+
+  size = lfs_file_size(ctx->fs, &ctx->file);
+  if (size < 0)
+  {
+    set_errno_from_lfs((int)size);
+    return -1;
+  }
+
+  st->st_mode = S_IFREG;
+  st->st_size = (off_t)size;
   return 0;
 }
 
 int _isatty(int file)
 {
-  (void)file;
-  return 1;
+  return (file < SYS_FILE_FD_BASE) ? 1 : 0;
 }
 
 int _lseek(int file, int ptr, int dir)
 {
-  (void)file;
-  (void)ptr;
-  (void)dir;
-  return 0;
+  sys_file_fd_t *ctx;
+  lfs_soff_t rc;
+
+  if (file < SYS_FILE_FD_BASE)
+  {
+    return 0;
+  }
+
+  ctx = get_file_fd(file);
+  if (ctx == NULL)
+  {
+    errno = EBADF;
+    return -1;
+  }
+
+  switch (dir)
+  {
+  case SEEK_SET:
+    rc = lfs_file_seek(ctx->fs, &ctx->file, (lfs_soff_t)ptr, LFS_SEEK_SET);
+    break;
+  case SEEK_CUR:
+    rc = lfs_file_seek(ctx->fs, &ctx->file, (lfs_soff_t)ptr, LFS_SEEK_CUR);
+    break;
+  case SEEK_END:
+    rc = lfs_file_seek(ctx->fs, &ctx->file, (lfs_soff_t)ptr, LFS_SEEK_END);
+    break;
+  default:
+    errno = EINVAL;
+    return -1;
+  }
+
+  if (rc < 0)
+  {
+    set_errno_from_lfs((int)rc);
+    return -1;
+  }
+
+  return (int)rc;
 }
 
 int _open(char *path, int flags, ...)
 {
-  (void)path;
-  (void)flags;
-  /* Pretend like we always fail */
-  return -1;
+  lfs_t *lfs;
+  sys_file_fd_t *ctx;
+  int fd;
+  int lfs_flags;
+
+  if (path == NULL)
+  {
+    errno = EINVAL;
+    return -1;
+  }
+
+  if ((flags & O_CREAT) != 0)
+  {
+    va_list ap;
+
+    va_start(ap, flags);
+    (void)va_arg(ap, int);
+    va_end(ap);
+  }
+
+  lfs_flags = map_open_flags(flags);
+  if (lfs_flags < 0)
+  {
+    return -1;
+  }
+
+  lfs = get_lfs_or_init();
+  if (lfs == NULL)
+  {
+    return -1;
+  }
+
+  fd = alloc_file_fd();
+  if (fd < 0)
+  {
+    return -1;
+  }
+
+  ctx = get_file_fd(fd);
+  if (ctx == NULL)
+  {
+    errno = EBADF;
+    return -1;
+  }
+
+  ctx->fs = lfs;
+  {
+    int rc = lfs_file_open(lfs, &ctx->file, path, lfs_flags);
+
+    if (rc < 0)
+    {
+      ctx->in_use = 0;
+      ctx->fs = NULL;
+      memset(&ctx->file, 0, sizeof(ctx->file));
+      set_errno_from_lfs(rc);
+      return -1;
+    }
+  }
+
+  return fd;
 }
 
 int _wait(int *status)
@@ -136,15 +511,67 @@ int _wait(int *status)
 
 int _unlink(char *name)
 {
-  (void)name;
-  errno = ENOENT;
-  return -1;
+  lfs_t *lfs;
+  int rc;
+
+  if (name == NULL)
+  {
+    errno = EINVAL;
+    return -1;
+  }
+
+  lfs = get_lfs_or_init();
+  if (lfs == NULL)
+  {
+    return -1;
+  }
+
+  rc = lfs_remove(lfs, name);
+  if (rc < 0)
+  {
+    set_errno_from_lfs(rc);
+    return -1;
+  }
+
+  return 0;
 }
 
 clock_t _times(struct tms *buf)
 {
   (void)buf;
   return -1;
+}
+
+int _rename(const char *oldpath, const char *newpath)
+{
+  lfs_t *lfs;
+  int rc;
+
+  if ((oldpath == NULL) || (newpath == NULL))
+  {
+    errno = EINVAL;
+    return -1;
+  }
+
+  lfs = get_lfs_or_init();
+  if (lfs == NULL)
+  {
+    return -1;
+  }
+
+  rc = lfs_rename(lfs, oldpath, newpath);
+  if (rc < 0)
+  {
+    set_errno_from_lfs(rc);
+    return -1;
+  }
+
+  return 0;
+}
+
+int rename(const char *oldpath, const char *newpath)
+{
+  return _rename(oldpath, newpath);
 }
 
 int _stat(const char *file, struct stat *st)
@@ -187,6 +614,24 @@ int _stat(const char *file, struct stat *st)
     case LFS_ERR_IO:
       errno = EIO;
       break;
+    case LFS_ERR_INVAL:
+      errno = EINVAL;
+      break;
+    case LFS_ERR_BADF:
+      errno = EBADF;
+      break;
+    case LFS_ERR_ISDIR:
+      errno = EISDIR;
+      break;
+    case LFS_ERR_NAMETOOLONG:
+      errno = ENAMETOOLONG;
+      break;
+    case LFS_ERR_FBIG:
+      errno = EFBIG;
+      break;
+    case LFS_ERR_NOSPC:
+      errno = ENOSPC;
+      break;
     default:
       errno = EIO;
       break;
@@ -199,6 +644,23 @@ int _stat(const char *file, struct stat *st)
   st->st_size = 0;
   return 0;
 }
+
+#if !defined(__PICOLIBC__)
+int stat(const char *file, struct stat *st)
+{
+  return _stat(file, st);
+}
+
+int fstat(int file, struct stat *st)
+{
+  return _fstat(file, st);
+}
+
+int remove(const char *path)
+{
+  return _unlink((char *)path);
+}
+#endif
 
 int _link(char *old, char *new)
 {
