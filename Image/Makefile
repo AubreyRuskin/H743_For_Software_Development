@@ -14,6 +14,10 @@ PROJ_DIR := $(abspath $(IMAGE_DIR)/..)
 # littlefs image
 IMAGE_SCRIPT := $(IMAGE_DIR)/build_littlefs_image.sh
 IMAGE_BIN := $(BIN_DIR)/littlefs_w25q64.bin
+READ_FLASH_SCRIPT := $(IMAGE_DIR)/read_flash.py
+FLASH_DIR := $(IMAGE_DIR)/flash
+FLASH_DUMP_BIN := $(BIN_DIR)/littlefs_w25q64.readback.bin
+FLASH_TMP_DIR := $(FLASH_DIR).tmp
 
 # stldr build outputs
 FLM_NAME ?= W25Q64_STM32H743
@@ -79,6 +83,12 @@ FREQ ?= 4000000
 ERASE ?= sector
 QSPI_ADDR ?= 0x90000000
 
+# Keep these defaults aligned with Core/Src/lfs_port.c and build_littlefs_image.sh
+LFS_BLOCK_SIZE ?= 4096
+LFS_PAGE_SIZE ?= 256
+LFS_SIZE ?= 8388608
+READ_CHUNK_SIZE ?= 262144
+
 # pyocd user script
 PYOCD_SCRIPT := $(IMAGE_DIR)/pyocd_user.py
 
@@ -86,7 +96,7 @@ PYOCD_SCRIPT := $(IMAGE_DIR)/pyocd_user.py
 DIFF_SCRIPT := $(IMAGE_DIR)/diff_flash.py
 LAST_IMAGE  := $(BIN_DIR)/littlefs_w25q64.bin.last
 
-.PHONY: help image flm flash flash-diff clean
+.PHONY: help image flm flash flash-diff read-flash pull-flash clean
 
 help:
 	@echo "Targets:"
@@ -94,10 +104,13 @@ help:
 	@echo "  make flm        - Build CMSIS Flash Algorithm (.FLM) for W25Q64"
 	@echo "  make flash      - Flash littlefs image to W25Q64 (full, 8MB)"
 	@echo "  make flash-diff - Incremental flash (only changed sectors)"
+	@echo "  make read-flash - Read W25Q64 and unpack files to Image/flash"
 	@echo "  make clean      - Remove build artifacts"
 	@echo ""
 	@echo "Variables (override like: make flash TARGET=stm32h743xx):"
 	@echo "  TARGET=$(TARGET) FREQ=$(FREQ) ERASE=$(ERASE) QSPI_ADDR=$(QSPI_ADDR)"
+	@echo "  LFS_BLOCK_SIZE=$(LFS_BLOCK_SIZE) LFS_PAGE_SIZE=$(LFS_PAGE_SIZE) LFS_SIZE=$(LFS_SIZE)"
+	@echo "  READ_CHUNK_SIZE=$(READ_CHUNK_SIZE)"
 
 image: $(IMAGE_BIN)
 
@@ -149,6 +162,37 @@ flash-diff: image flm
 		--target "$(TARGET)" \
 		--freq "$(FREQ)" \
 		--script "$(PYOCD_SCRIPT)"
+
+read-flash: flm
+	@command -v "$(PYOCD)" >/dev/null 2>&1 || { echo "Error: pyocd not found"; exit 1; }
+	@command -v mklittlefs >/dev/null 2>&1 || { echo "Error: mklittlefs not found"; exit 1; }
+	@mkdir -p "$(BIN_DIR)"
+	@rm -rf "$(FLASH_TMP_DIR)"
+	@echo "Reading W25Q64 from $(QSPI_ADDR) ($(LFS_SIZE) bytes) via pyOCD"
+	@python3 "$(READ_FLASH_SCRIPT)" "$(FLASH_DUMP_BIN)" \
+		--base "$(QSPI_ADDR)" \
+		--size "$(LFS_SIZE)" \
+		--chunk "$(READ_CHUNK_SIZE)" \
+		--target "$(TARGET)" \
+		--freq "$(FREQ)" \
+		--script "$(PYOCD_SCRIPT)" \
+		--pyocd "$(PYOCD)"
+	@actual_size=$$(stat -c '%s' "$(FLASH_DUMP_BIN)" 2>/dev/null || echo 0); \
+	if [[ "$$actual_size" != "$(LFS_SIZE)" ]]; then \
+		echo "Error: readback failed or incomplete: $(FLASH_DUMP_BIN) ($$actual_size bytes)"; \
+		exit 1; \
+	fi
+	@echo "Unpacking $(FLASH_DUMP_BIN) to $(FLASH_DIR)"
+	@mklittlefs -u "$(FLASH_TMP_DIR)" \
+		-b "$(LFS_BLOCK_SIZE)" \
+		-p "$(LFS_PAGE_SIZE)" \
+		-s "$(LFS_SIZE)" \
+		"$(FLASH_DUMP_BIN)"
+	@rm -rf "$(FLASH_DIR)"
+	@mv "$(FLASH_TMP_DIR)" "$(FLASH_DIR)"
+	@echo "Done: $(FLASH_DIR)"
+
+pull-flash: read-flash
 
 clean:
 	@rm -rf "$(BUILD_DIR)"

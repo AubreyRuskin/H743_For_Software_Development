@@ -3,6 +3,7 @@
  *
  * pyocd loads this ELF into MCU RAM, then calls:
  *   Init()        → configure clocks, QSPI, enable quad mode
+ *                   for VERIFY, also enable memory-mapped read mode
  *   EraseSector()  → erase 4 KB at given address (repeated for all sectors)
  *   ProgramPage() → write up to 256 B from RAM buffer to flash (repeated)
  *   UnInit()      → cleanup
@@ -35,6 +36,8 @@
 #define CMD_CHIP_ERASE          0xC7U
 #define CMD_QUAD_PAGE_PROGRAM   0x32U
 #define CMD_QUAD_FAST_READ      0x6BU
+
+#define FLASH_FNC_VERIFY        3U
 
 #define SR1_BUSY                0x01U
 #define SR2_QE                  0x02U
@@ -191,6 +194,26 @@ static int W25Q_EnableQuad(void)
     return W25Q_WaitBusy(200);
 }
 
+static int QSPI_EnableMemoryMappedRead(void)
+{
+    QSPI_CommandTypeDef c = {0};
+    QSPI_MemoryMappedTypeDef mm = {0};
+
+    c.InstructionMode  = QSPI_INSTRUCTION_1_LINE;
+    c.Instruction      = CMD_QUAD_FAST_READ;
+    c.AddressMode      = QSPI_ADDRESS_1_LINE;
+    c.AddressSize      = QSPI_ADDRESS_24_BITS;
+    c.DataMode         = QSPI_DATA_4_LINES;
+    c.DummyCycles      = 8;
+    c.DdrMode          = QSPI_DDR_MODE_DISABLE;
+    c.DdrHoldHalfCycle = QSPI_DDR_HHC_ANALOG_DELAY;
+    c.SIOOMode         = QSPI_SIOO_INST_EVERY_CMD;
+
+    mm.TimeOutActivation = QSPI_TIMEOUT_COUNTER_DISABLE;
+
+    return (HAL_QSPI_MemoryMapped(&hqspi, &c, &mm) == HAL_OK) ? 0 : 1;
+}
+
 /* ================================================================
  * CMSIS Flash Algorithm API (return 0 = OK)
  * ================================================================ */
@@ -199,7 +222,6 @@ int Init(uint32_t adr, uint32_t clk, uint32_t fnc)
 {
     (void)adr;
     (void)clk;
-    (void)fnc;
 
     SystemInit();
     HAL_Init();
@@ -208,6 +230,8 @@ int Init(uint32_t adr, uint32_t clk, uint32_t fnc)
         return 1;
     if (W25Q_EnableQuad() != 0)
         return 1;
+    if (fnc == FLASH_FNC_VERIFY)
+        return QSPI_EnableMemoryMappedRead();
     return 0;
 }
 

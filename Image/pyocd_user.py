@@ -32,6 +32,8 @@ def will_init_target(target, init_sequence):
             sector_size=0x1000,      # 4 KB
             page_size=0x10000,       # 64 KB
             is_boot_memory=False,
+            is_powered_on_boot=False,
+            is_external=True,
             erased_byte_value=0xFF,
             flm=FLM_PATH,
         )
