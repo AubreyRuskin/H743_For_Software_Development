@@ -13,6 +13,10 @@
       "interface": "swd",
       "runToEntryPoint": "main",
       "preLaunchTask": "cmake: build Debug",
+      "preLaunchCommands": [
+        "set mem inaccessible-by-default off",
+        "mem 0x24000000 0x24080000 rw"
+      ],
       "showDevDebugOutput": "raw",
       "serverArgs": [
         "--frequency",
@@ -30,6 +34,10 @@
       "gdbTarget": "localhost:3333",
       "runToEntryPoint": "main",
       "preLaunchTask": "cmake: build Debug",
+      "preLaunchCommands": [
+        "set mem inaccessible-by-default off",
+        "mem 0x24000000 0x24080000 rw"
+      ],
       "showDevDebugOutput": "raw"
     }
   ]
