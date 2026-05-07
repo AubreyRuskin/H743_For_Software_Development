@@ -15,6 +15,7 @@ PROJ_DIR := $(abspath $(IMAGE_DIR)/..)
 IMAGE_SCRIPT := $(IMAGE_DIR)/build_littlefs_image.sh
 IMAGE_BIN := $(BIN_DIR)/littlefs_w25q64.bin
 READ_FLASH_SCRIPT := $(IMAGE_DIR)/read_flash.py
+ROOT_INPUTS := $(shell find "$(ROOT_DIR)" -mindepth 1 -print 2>/dev/null)
 FLASH_DIR := $(IMAGE_DIR)/flash
 FLASH_DUMP_BIN := $(BIN_DIR)/littlefs_w25q64.readback.bin
 FLASH_TMP_DIR := $(FLASH_DIR).tmp
@@ -114,7 +115,7 @@ help:
 
 image: $(IMAGE_BIN)
 
-$(IMAGE_BIN): $(IMAGE_SCRIPT)
+$(IMAGE_BIN): $(IMAGE_SCRIPT) $(ROOT_INPUTS)
 	@mkdir -p "$(BIN_DIR)"
 	@"$(IMAGE_SCRIPT)"
 
