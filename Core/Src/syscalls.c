@@ -646,15 +646,13 @@ int _stat(const char *file, struct stat *st)
 }
 
 #if !defined(__PICOLIBC__)
-int stat(const char *file, struct stat *st)
-{
-  return _stat(file, st);
-}
-
-int fstat(int file, struct stat *st)
-{
-  return _fstat(file, st);
-}
+/*
+ * Use GCC alias attribute so that stat/fstat share the same address
+ * as _stat/_fstat.  GDB can then break on either name and land directly
+ * in the implementation, instead of stepping through a wrapper frame.
+ */
+int stat(const char *file, struct stat *st) __attribute__((alias("_stat")));
+int fstat(int file, struct stat *st) __attribute__((alias("_fstat")));
 
 int remove(const char *path)
 {
