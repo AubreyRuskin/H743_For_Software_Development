@@ -23,6 +23,8 @@ def parse_args():
     parser.add_argument("--chunk", type=int_base_0, default=0x40000)
     parser.add_argument("--target", default="stm32h743xx")
     parser.add_argument("--freq", type=int_base_0, default=4000000)
+    parser.add_argument("--connect", default="halt", choices=("halt", "pre-reset", "under-reset", "attach"),
+                        help="pyOCD connect mode; halt keeps the filesystem quiescent while reading")
     parser.add_argument("--script", required=True, help="pyOCD user script path")
     parser.add_argument("--pyocd", default="pyocd", help="pyOCD executable")
     return parser.parse_args()
@@ -66,6 +68,8 @@ def run_pyocd_savemem(args, address, size, chunk_path):
         args.target,
         "-f",
         str(args.freq),
+        "-M",
+        args.connect,
         "--script",
         args.script,
         "-c",
